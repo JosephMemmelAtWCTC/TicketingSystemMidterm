@@ -32,43 +32,51 @@ public static class FileScrubber<T> where T: Ticket, new()
                     string line = sr.ReadLine();
                     // look for quote(") in string
                     // this indicates a comma(,) or quote(") in ticket Summary
-                    int idx = line.IndexOf('"');
-                    string genres = "";
+                    int idx = line.IndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR);
+                    string[] ticketParts;
                     if (idx == -1)
                     {
                         // no quote = no comma or quote in ticket Summary
-                        // ticket details are separated with comma(,)
-                        string[] ticketDetails = line.Split(',');
-                        ticket.TicketId = UInt64.Parse(ticketDetails[0]);
-                        ticket.Summary = ticketDetails[1];
-                        genres = ticketDetails[2];
-                        // ticket.director = ticketDetails.Length > 3 ? ticketDetails[3] : "unassigned";
-                        // ticket.runningTime = ticketDetails.Length > 4 ? TimeSpan.Parse(ticketDetails[4]) : new TimeSpan(0);
+                        ticketParts = line.Split(delimeter1);
                     }
                     else
                     {
-                        // quote = comma or quotes in ticket Summary
-                        // extract the TicketId
-                        ticket.TicketId = UInt64.Parse(line.Substring(0, idx - 1));
-                        // remove TicketId and first comma from string
-                        line = line.Substring(idx);
-                        // find the last quote
-                        idx = line.LastIndexOf('"');
-                        // extract Summary
-                        ticket.Summary = line.Substring(0, idx + 1);
-                        // remove Summary and next comma from the string
-                        line = line.Substring(idx + 2);
-                        // split the remaining string based on commas
-                        string[] details = line.Split(',');
-                        // the first item in the array should be genres 
-                        genres = details[0];
+                        // string merged = ticketParts[1..(ticketParts.Length - 5)].Aggregate((current, next) => $"{current}{delimeter1}{next}"); //Put delimeter back in
+                        string[] before = line.Substring(0,idx).Split(delimeter1);
+                        string between = line.Substring(idx, line.LastIndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR));
+                        string[] after = line.Substring(line.LastIndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR)).Split(delimeter1);
+
+                        ticketParts = new string[before.Length + 1 + after.Length];
+                        int partIndex = 0;
+                        for(int j = 0; j < before.Length; j++)
+                        {
+                            ticketParts[partIndex++] = before[j];
+                        }
+                        ticketParts[partIndex++] = between;
+                        for(int j = 0; j < after.Length; j++)
+                        {
+                            ticketParts[partIndex++] = after[j];
+                        }
+
                         // // if there is another item in the array it should be director
                         // ticket.director = details.Length > 1 ? details[1] : "unassigned";
                         // // if there is another item in the array it should be run time
                         // ticket.runningTime = details.Length > 2 ? TimeSpan.Parse(details[2]) : new TimeSpan(0);
                     }
-                    // sw.WriteLine($"{ticket.TicketId},{ticket.Summary},{genres},{ticket.director},{ticket.runningTime}");
-                    sw.WriteLine($"{ticket.TicketId},{ticket.Summary},{genres}");
+
+                    // Ticket base object
+                    // TicketID, Summary, Status, Priority, Submitter, Assigned, Watching
+                    ticket.TicketId = UInt64.Parse(ticketParts[0]);
+                    ticket.Summary = ticketParts[1];
+                    ticket.Status = Ticket.GetEnumStatusFromString(ticketParts[2]);
+                    ticket.Priority = Ticket.GetEnumPriorityFromString(ticketParts[3]);
+                    ticket.Submitter = ticketParts[4];
+                    ticket.Assigned = ticketParts[5];
+                    ticket.Watching = ticketParts[6].Split(delimeter2).ToList();
+
+                    string storeBasicLine = $"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{Ticket.StatusesEnumToString(ticket.Status)}{delimeter1}{Ticket.PrioritiesEnumToString(ticket.Priority)}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{ticket.Watching}";
+                    
+                    sw.WriteLine(storeBasicLine);
                 }
                 sw.Close();
                 sr.Close();
