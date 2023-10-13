@@ -2,15 +2,20 @@ using NLog;
 public static class FileScrubber<T> where T: Ticket, new()
 {
 
+    //Debugging
+    const bool DEBUGGING_ALWAYS_SCRUB_FILE = true;
+
     public static string ScrubTickets(string readFile, NLog.Logger logger, string delimeter1, string delimeter2)
     {
-        try
-        {
+        // try
+        // {
             // determine name of writeFile
             string ext = readFile.Split('.').Last();
             string writeFile = readFile.Replace(ext, $"scrubbed.{ext}");
             // if writeFile exists, the file has already been scrubbed
-            if (File.Exists(writeFile))
+
+
+            if (false && File.Exists(writeFile))
             {
                 // file has already been scrubbed
                 logger.Info("File already scrubbed");
@@ -43,20 +48,31 @@ public static class FileScrubber<T> where T: Ticket, new()
                     {
                         // string merged = ticketParts[1..(ticketParts.Length - 5)].Aggregate((current, next) => $"{current}{delimeter1}{next}"); //Put delimeter back in
                         string[] before = line.Substring(0,idx).Split(delimeter1);
-                        string between = line.Substring(idx, line.LastIndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR));
-                        string[] after = line.Substring(line.LastIndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR)).Split(delimeter1);
+                        string between = line.Substring(idx, line.LastIndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR)-1);
+                        string[] after = line.Substring(line.LastIndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR)+1).Split(delimeter1);
 
-                        ticketParts = new string[before.Length + 1 + after.Length];
+                        ticketParts = new string[before.Length + after.Length - 1]; //Last is empty so no +1 for between
                         int partIndex = 0;
                         for(int j = 0; j < before.Length; j++)
                         {
-                            ticketParts[partIndex++] = before[j];
+                            if(before[j].Length != 0){
+                                ticketParts[partIndex++] = before[j];
+                            }
                         }
                         ticketParts[partIndex++] = between;
                         for(int j = 0; j < after.Length; j++)
                         {
-                            ticketParts[partIndex++] = after[j];
+                            if(after[j].Length != 0){
+                                ticketParts[partIndex++] = after[j];
+                            }
                         }
+                        // Console.WriteLine(ticketParts.Aggregate((current, next) => $"{current}{next}"));
+                        Console.WriteLine("START");
+                        foreach (var item in ticketParts)
+                        {
+                            Console.WriteLine("-"+item+"-");
+                        }
+                        Console.WriteLine("END");
 
                         // // if there is another item in the array it should be director
                         // ticket.director = details.Length > 1 ? details[1] : "unassigned";
@@ -74,8 +90,12 @@ public static class FileScrubber<T> where T: Ticket, new()
                     ticket.Assigned = ticketParts[5];
                     ticket.Watching = ticketParts[6].Split(delimeter2).ToList();
 
-                    string storeBasicLine = $"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{Ticket.StatusesEnumToString(ticket.Status)}{delimeter1}{Ticket.PrioritiesEnumToString(ticket.Priority)}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{ticket.Watching}";
+                    string storeBasicLine = $"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{Ticket.StatusesEnumToString(ticket.Status)}{delimeter1}{Ticket.PrioritiesEnumToString(ticket.Priority)}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{ticket.Watching.Aggregate((current, next) => $"{current}, {next}")}";
                     
+                    // 
+
+
+
                     sw.WriteLine(storeBasicLine);
                 }
                 sw.Close();
@@ -83,11 +103,11 @@ public static class FileScrubber<T> where T: Ticket, new()
                 logger.Info("File scrub ended");
             }
             return writeFile;
-        }
-        catch (Exception ex)
-        {
-            logger.Error(ex.Message);
-        }
+        // }
+        // catch (Exception ex)
+        // {
+        //     logger.Error(ex.Message);
+        // }
         return "";
     }
 }
