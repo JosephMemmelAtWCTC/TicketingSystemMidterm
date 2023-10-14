@@ -51,7 +51,7 @@ public static class FileScrubber<T> where T: Ticket, new()
                         string between = line.Substring(idx, line.LastIndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR)-1);
                         string[] after = line.Substring(line.LastIndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR)+1).Split(delimeter1);
 
-                        ticketParts = new string[before.Length + after.Length - 1]; //Last is empty so no +1 for between
+                        ticketParts = new string[before.Length + after.Length - 1];
                         int partIndex = 0;
                         for(int j = 0; j < before.Length; j++)
                         {
@@ -66,13 +66,12 @@ public static class FileScrubber<T> where T: Ticket, new()
                                 ticketParts[partIndex++] = after[j];
                             }
                         }
-                        // Console.WriteLine(ticketParts.Aggregate((current, next) => $"{current}{next}"));
-                        Console.WriteLine("START");
-                        foreach (var item in ticketParts)
-                        {
-                            Console.WriteLine("-"+item+"-");
-                        }
-                        Console.WriteLine("END");
+                        // Console.WriteLine("START");
+                        // foreach (var item in ticketParts)
+                        // {
+                        //     Console.WriteLine("-"+item+"-");
+                        // }
+                        // Console.WriteLine("END");
 
                         // // if there is another item in the array it should be director
                         // ticket.director = details.Length > 1 ? details[1] : "unassigned";
@@ -91,12 +90,18 @@ public static class FileScrubber<T> where T: Ticket, new()
                     ticket.Watching = ticketParts[6].Split(delimeter2).ToList();
 
                     string storeBasicLine = $"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{Ticket.StatusesEnumToString(ticket.Status)}{delimeter1}{Ticket.PrioritiesEnumToString(ticket.Priority)}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{ticket.Watching.Aggregate((current, next) => $"{current}, {next}")}";
-                    
-                    // 
+                    string additionalParts = "";
+
+                    if(typeof(T) == typeof(BugDefect)){
+                        ticket = (BugDefect)ticket;
+                        if(ticket is BugDefect bugDefect){
+                            bugDefect.Severity = ticketParts.Length > 7 ? ticketParts[6] : "[Severity not set]";
+                            additionalParts = $"{bugDefect.Severity}";
+                        }
+                    }
 
 
-
-                    sw.WriteLine(storeBasicLine);
+                    sw.WriteLine($"{storeBasicLine}{delimeter1}{additionalParts}");
                 }
                 sw.Close();
                 sr.Close();
