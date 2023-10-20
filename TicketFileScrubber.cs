@@ -28,13 +28,19 @@ public static class FileScrubber<T> where T: Ticket, new()
                 StreamWriter sw = new StreamWriter(writeFile);
                 // open read file
                 StreamReader sr = new StreamReader(readFile);
-                // remove first line - column headers
-                sr.ReadLine();
+
+                uint lineIndex = 0;
                 while (!sr.EndOfStream)
                 {
                     // create instance of Ticket class
                     Ticket ticket = new T();
                     string line = sr.ReadLine();
+
+                    if(lineIndex == 0 && line.StartsWith("(") && line.EndsWith(")")){//TODO: Add more checks to avoid removing a record
+                        // Ignore headers line 1
+                    }else{
+                        
+
                     // look for quote(") in string
                     // this indicates a comma(,) or quote(") in ticket Summary
                     int idx = line.IndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR);
@@ -89,19 +95,20 @@ public static class FileScrubber<T> where T: Ticket, new()
                     ticket.Assigned = ticketParts[5];
                     ticket.Watching = ticketParts[6].Split(delimeter2).ToList();
 
-                    string storeBasicLine = $"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{Ticket.StatusesEnumToString(ticket.Status)}{delimeter1}{Ticket.PrioritiesEnumToString(ticket.Priority)}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{ticket.Watching.Aggregate((current, next) => $"{current}, {next}")}";
+                    string storeBasicLine = $"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{Ticket.StatusesEnumToString(ticket.Status)}{delimeter1}{Ticket.PrioritiesEnumToString(ticket.Priority)}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{ticket.Watching.Aggregate((current, next) => $"{current}{delimeter2}{next}")}";
                     string additionalParts = "";
 
                     if(typeof(T) == typeof(BugDefect)){
                         ticket = (BugDefect)ticket;
                         if(ticket is BugDefect bugDefect){
-                            bugDefect.Severity = ticketParts.Length > 7 ? ticketParts[6] : "[Severity not set]";
+                            bugDefect.Severity = ticketParts.Length > 7 ? ticketParts[7] : "[Severity not set]";
                             additionalParts = $"{bugDefect.Severity}";
                         }
                     }
 
 
                     sw.WriteLine($"{storeBasicLine}{delimeter1}{additionalParts}");
+                    }
                 }
                 sw.Close();
                 sr.Close();

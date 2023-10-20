@@ -36,8 +36,19 @@ public class TicketFile<T> where T : Ticket, new()
                 {
                     // no quote = no comma in ticket summary
                     // ticket details are separated with comma(,)
-                    string[] ticketDetails = line.Split(delimeter2);
+                    string[] ticketDetails = line.Split(delimeter1);
+
+                    // for (int i = 0; i < ticketDetails.Length; i++)
+                    // {
+                    //     Console.WriteLine("F: "+i+"- \""+ticketDetails[i]+"\"");
+                    // }
+
                     ticket.TicketId = UInt64.Parse(ticketDetails[0]);
+                    ticket.Summary = ticketDetails[1];
+                    ticket.Summary = ticketDetails[1];
+                    ticket.Summary = ticketDetails[1];
+                    ticket.Summary = ticketDetails[1];
+                    ticket.Summary = ticketDetails[1];
                     ticket.Summary = ticketDetails[1];
                     // ticket.Genres = ticketDetails[2].Split(delimeter1).ToList().Select(genreStr => Ticket.GetGenreEnumFromString(genreStr)).ToList();
                     // ticket.director = ticketDetails[3];
@@ -58,6 +69,7 @@ public class TicketFile<T> where T : Ticket, new()
                     line = line.Substring(idx + 2);
                     // split the remaining string based on commas
                     string[] details = line.Split(delimeter2);
+        
                     // the first item in the array should be genres 
                     // ticket.genres = details[0].Split(delimeter1).ToList().Select(genreStr => Ticket.GetGenreEnumFromString(genreStr)).ToList();
                     // // if there is another item in the array it should be director
@@ -101,7 +113,10 @@ public class TicketFile<T> where T : Ticket, new()
             StreamWriter sw = new StreamWriter(filePath, true);
             // write ticket data to file
             //TODO: NEED TO WRITE LINE
-            // sw.WriteLine($"{ticket.TicketId},{Summary},{string.Join(delimeter1, ticket.genres)},{ticket.director},{ticket.runningTime}");
+
+
+            sw.WriteLine($"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{ticket.Status}{delimeter1}{ticket.Priority}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{string.Join(delimeter2,ticket.Watching)}");
+
             sw.Close();
             // add ticket details to List
             Tickets.Add(ticket);

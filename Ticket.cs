@@ -31,7 +31,7 @@ public abstract class Ticket//: IEquatable<Ticket>, IComparable<Ticket>
     public PRIORITIES Priority { get; set; }
     public string Submitter { get; set; }
     public string Assigned { get; set; }
-    public List<string> Watching { get; set; }
+    public List<string> Watching { get; set; } = new List<string>(){};
 
     // constructor
     public Ticket()
