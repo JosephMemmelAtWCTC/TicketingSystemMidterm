@@ -42,37 +42,37 @@ public abstract class Ticket//: IEquatable<Ticket>, IComparable<Ticket>
     public virtual string Display()
     {
         return $"Id: {TicketId}\n" +
-               $"Summary: {Summary}\n" +
-               $"Status: {StatusesEnumToString(Status)}\n" +
-               $"Status: {PrioritiesEnumToString(Priority)}\n" +
+               $"Summary:   {Summary}\n" +
+               $"Status:    {StatusesEnumToString(Status)}\n" +
+               $"Status:    {PrioritiesEnumToString(Priority)}\n" +
                $"Submitter: {Submitter}\n" +
-               $"Assigned: {Assigned}\n" +
-               $"Genres: {string.Join(", ", Watching)}\n";
+               $"Assigned:  {Assigned}\n" +
+               $"Watching:  {string.Join(", ", Watching)}\n";
     }
 
 // PULL SORT HERE
 
     public static STATUSES GetEnumStatusFromString(string statuseStr)
     {
-        switch (statuseStr)
+        switch(statuseStr.ToLower())
         {
-            case "Open": return STATUSES.OPEN;
-            case "Reopened": return STATUSES.REOPENDED;
-            case "Resolved": return STATUSES.RESOLVED;
-            case "Closed": return STATUSES.CLOSED;
+            case "open": return STATUSES.OPEN;
+            case "reopened": return STATUSES.REOPENDED;
+            case "resolved": return STATUSES.RESOLVED;
+            case "closed": return STATUSES.CLOSED;
             case "(no statuses listed)": return STATUSES.NO_STATUSES_LISTED;
             default: return STATUSES.ERROR_NOT_A_VALID_STATUS;
         }
     }
     public static PRIORITIES GetEnumPriorityFromString(string priorityStr)
     {
-        switch (priorityStr)
+        switch(priorityStr.ToLower())
         {
-            case "Low": return PRIORITIES.LOW;
-            case "Medium": return PRIORITIES.MEDIUM;
-            case "High": return PRIORITIES.HIGH;
-            case "Urgent": return PRIORITIES.Urgent;
-            case "Emergency": return PRIORITIES.EMERGENCY;
+            case "low": return PRIORITIES.LOW;
+            case "medium": return PRIORITIES.MEDIUM;
+            case "high": return PRIORITIES.HIGH;
+            case "urgent": return PRIORITIES.Urgent;
+            case "emergency": return PRIORITIES.EMERGENCY;
             case "(no priorities listed)": return PRIORITIES.NO_PRIORITIES_LISTED;
             default: return PRIORITIES.ERROR_NOT_A_VALID_PRIORITY;
         }
@@ -112,12 +112,56 @@ public class BugDefect : Ticket
     public override string Display()
     {
         return $"Id: {TicketId}\n" +
-               $"Summary: {Summary}\n" +
-               $"Status: {StatusesEnumToString(Status)}\n" +
-               $"Priority: {PrioritiesEnumToString(Priority)}\n" +
+               $"Summary:   {Summary}\n" +
+               $"Status:    {StatusesEnumToString(Status)}\n" +
+               $"Priority:  {PrioritiesEnumToString(Priority)}\n" +
                $"Submitter: {Submitter}\n" +
-               $"Assigned: {Assigned}\n" +
-               $"Watching: {string.Join(", ", Watching)}\n" +
-               $"Severity: {Severity}\n";
+               $"Assigned:  {Assigned}\n" +
+               $"Watching:  {string.Join(", ", Watching)}\n" +
+               $"Severity:  {Severity}\n";
+    }
+}
+
+public class Enhancement : Ticket
+{
+    public string Software {get; set; }
+    public double Cost {get; set; }
+    public string Reason {get; set; }
+    public string Estimate {get; set; }
+
+
+    public override string Display()
+    {
+        return $"Id: {TicketId}\n" +
+               $"Summary:   {Summary}\n" +
+               $"Status:    {StatusesEnumToString(Status)}\n" +
+               $"Priority:  {PrioritiesEnumToString(Priority)}\n" +
+               $"Submitter: {Submitter}\n" +
+               $"Assigned:  {Assigned}\n" +
+               $"Watching:  {string.Join(", ", Watching)}\n" +
+               $"Software:  {Software}\n" +
+               $"Cost:      {Cost}\n" +
+               $"Reason:    {Reason}\n" +
+               $"Estimate:  {Estimate}\n";
+    }
+}
+
+public class Task : Ticket
+{
+    public string ProjectName {get; set; }
+    public DateOnly DueDate {get; set; }
+
+
+    public override string Display()
+    {
+        return $"Id: {TicketId}\n" +
+               $"Summary:     {Summary}\n" +
+               $"Status:      {StatusesEnumToString(Status)}\n" +
+               $"Priority:    {PrioritiesEnumToString(Priority)}\n" +
+               $"Submitter:   {Submitter}\n" +
+               $"Assigned:    {Assigned}\n" +
+               $"Watching:    {string.Join(", ", Watching)}\n" +
+               $"ProjectName: {ProjectName}\n" +
+               $"DueDate:     {DueDate}\n";
     }
 }

@@ -11,6 +11,11 @@ const string tasksPath = "Task.csv";
 // Scrub files
 string ticketsScrubbedFile = FileScrubber<BugDefect>.ScrubTickets(ticketsPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
 logger.Info(ticketsScrubbedFile);
+string enhancementsScrubbedFile = FileScrubber<Enhancement>.ScrubTickets(ticketsPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
+logger.Info(ticketsScrubbedFile);
+string tasksScrubbedFile = FileScrubber<Task>.ScrubTickets(ticketsPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
+logger.Info(ticketsScrubbedFile);
+
 
 TicketFile<BugDefect> ticketFile = new TicketFile<BugDefect>(ticketsScrubbedFile, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
 
