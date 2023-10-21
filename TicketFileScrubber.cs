@@ -3,19 +3,19 @@ public static class FileScrubber<T> where T: Ticket, new()
 {
 
     //Debugging
-    const bool DEBUGGING_ALWAYS_SCRUB_FILE = false;
+    const bool DEBUGGING_ALWAYS_SCRUB_FILE = true;
 
     public static string ScrubTickets(string readFile, NLog.Logger logger, string delimeter1, string delimeter2)
     {
+        //TODO: !!! Put back try catch
         // try
         // {
             // determine name of writeFile
             string ext = readFile.Split('.').Last();
             string writeFile = readFile.Replace(ext, $"scrubbed.{ext}");
+            
             // if writeFile exists, the file has already been scrubbed
-
-
-            if(DEBUGGING_ALWAYS_SCRUB_FILE && File.Exists(writeFile))
+            if(!DEBUGGING_ALWAYS_SCRUB_FILE && File.Exists(writeFile))
             {
                 // file has already been scrubbed
                 logger.Info("File already scrubbed");
@@ -72,17 +72,6 @@ public static class FileScrubber<T> where T: Ticket, new()
                                     ticketParts[partIndex++] = after[j];
                                 }
                             }
-                            // Console.WriteLine("START");
-                            // foreach (var item in ticketParts)
-                            // {
-                            //     Console.WriteLine("-"+item+"-");
-                            // }
-                            // Console.WriteLine("END");
-
-                            // // if there is another item in the array it should be director
-                            // ticket.director = details.Length > 1 ? details[1] : "unassigned";
-                            // // if there is another item in the array it should be run time
-                            // ticket.runningTime = details.Length > 2 ? TimeSpan.Parse(details[2]) : new TimeSpan(0);
                         }
 
                         // Ticket base object
@@ -98,11 +87,22 @@ public static class FileScrubber<T> where T: Ticket, new()
                         string storeBasicLine = $"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{Ticket.StatusesEnumToString(ticket.Status)}{delimeter1}{Ticket.PrioritiesEnumToString(ticket.Priority)}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{ticket.Watching.Aggregate((current, next) => $"{current}{delimeter2}{next}")}";
                         string additionalParts = "";
 
+//TODO: !!!!! Make it so that parenthesies check is always made in any possible user string value +/ temp remove those from text when inputted
+
                         if(typeof(T) == typeof(BugDefect)){
                             ticket = (BugDefect)ticket;
                             if(ticket is BugDefect bugDefect){
                                 bugDefect.Severity = ticketParts.Length > 7 ? ticketParts[7] : "[Severity not set]";
                                 additionalParts = $"{additionalParts}{delimeter1}{bugDefect.Severity}";
+                            }
+                        }else if(typeof(T) == typeof(Enhancement)){
+                            ticket = (Enhancement)ticket;
+                            if(ticket is Enhancement enhancement){
+                                enhancement.Software = ticketParts.Length > 7 ? ticketParts[7] : "[Software not set]";
+                                enhancement.Cost = ticketParts.Length > 8 ? Double.Parse(ticketParts[8].Substring((ticketParts[8].IndexOf(Enhancement.MONITORY_STARTER_ICON)==0)? 1 : 0)) : 0;
+                                enhancement.Reason = ticketParts.Length > 9 ? ticketParts[9] : "[Reason not set]";
+                                enhancement.Estimate = ticketParts.Length > 10 ? ticketParts[10] : "[Estimate not set]";
+                                additionalParts = $"{additionalParts}{delimeter1}{enhancement.Software}{delimeter1}{enhancement.Cost:c}{delimeter1}{enhancement.Reason}{delimeter1}{enhancement.Estimate}";
                             }
                         }
 

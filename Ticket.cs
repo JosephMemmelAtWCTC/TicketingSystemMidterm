@@ -124,6 +124,8 @@ public class BugDefect : Ticket
 
 public class Enhancement : Ticket
 {
+    public const string MONITORY_STARTER_ICON = "$";
+
     public string Software {get; set; }
     public double Cost {get; set; }
     public string Reason {get; set; }
@@ -140,7 +142,7 @@ public class Enhancement : Ticket
                $"Assigned:  {Assigned}\n" +
                $"Watching:  {string.Join(", ", Watching)}\n" +
                $"Software:  {Software}\n" +
-               $"Cost:      {Cost}\n" +
+               $"Cost:      {MONITORY_STARTER_ICON}{Cost}\n" +
                $"Reason:    {Reason}\n" +
                $"Estimate:  {Estimate}\n";
     }

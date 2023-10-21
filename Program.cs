@@ -11,10 +11,10 @@ const string tasksPath = "Task.csv";
 // Scrub files
 string ticketsScrubbedFile = FileScrubber<BugDefect>.ScrubTickets(ticketsPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
 logger.Info(ticketsScrubbedFile);
-string enhancementsScrubbedFile = FileScrubber<Enhancement>.ScrubTickets(ticketsPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
-logger.Info(ticketsScrubbedFile);
-string tasksScrubbedFile = FileScrubber<Task>.ScrubTickets(ticketsPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
-logger.Info(ticketsScrubbedFile);
+string enhancementsScrubbedFile = FileScrubber<Enhancement>.ScrubTickets(enhancementsPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
+logger.Info(enhancementsScrubbedFile);
+// string tasksScrubbedFile = FileScrubber<Task>.ScrubTickets(tasksPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
+// logger.Info(tasksScrubbedFile);
 
 
 TicketFile<BugDefect> ticketFile = new TicketFile<BugDefect>(ticketsScrubbedFile, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
@@ -52,7 +52,7 @@ do
     }
     else if (menuCheckCommand == enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.View_Tickets_No_Filter))
     {
-        UserInteractions.PrintTicketList<BugDefect>(ticketFile.Tickets);
+        UserInteractions.PrintTicketList(ticketFile.Tickets);
     }
     // else if (menuCheckCommand == enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.View_Tickets_Filter))
     // {

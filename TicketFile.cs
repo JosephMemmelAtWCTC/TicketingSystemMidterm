@@ -42,24 +42,27 @@ public class TicketFile<T> where T : Ticket, new()
                 }
                 else
                 {
+                    // TODO: Make method as these are simmilar in the scrubber for picking appart from quotation marks
                     // quote = comma or quotes in ticket summary
-                    // extract the TicketId
-                    ticket.TicketId = UInt64.Parse(line.Substring(0, idx - 1));
-                    // remove TicketId and first comma from string
-                    line = line.Substring(idx);
-                    // find the last quote
-                    idx = line.LastIndexOf("\"");
-                    // extract summary
-                    ticket.Summary = line.Substring(0, idx + 1);
-                    // remove summary and next comma from the string
-                    line = line.Substring(idx + 2);
-                    // split the remaining string based on commas
-                    string[] details = line.Split(delimeter2);
+                    string[] before = line.Substring(0,idx).Split(delimeter1);
+                    string between = line.Substring(idx, line.LastIndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR)-1);
+                    string[] after = line.Substring(line.LastIndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR)+1).Split(delimeter1);
 
-                    ticketDetails = line.Split(delimeter1);
-                    ticketDetails = new string[5];
-
-                    // TODO:!!!!!!!!!!!!!!!!!!
+                    ticketDetails = new string[before.Length + after.Length - 1];
+                    int partIndex = 0;
+                    for(int j = 0; j < before.Length; j++)
+                    {
+                        if(before[j].Length != 0){
+                            ticketDetails[partIndex++] = before[j];
+                        }
+                    }
+                    ticketDetails[partIndex++] = between;
+                    for(int j = 0; j < after.Length; j++)
+                    {
+                        if(after[j].Length != 0){
+                            ticketDetails[partIndex++] = after[j];
+                        }
+                    }
                 }
 
                 ticket.TicketId = UInt64.Parse(ticketDetails[0]);
@@ -70,15 +73,18 @@ public class TicketFile<T> where T : Ticket, new()
                 ticket.Assigned = ticketDetails[5];
                 ticket.Watching = ticketDetails[6].Split(delimeter2).ToList();
 
-                // if(typeof(T) == typeof(BugDefect)){
-                //     BugDefect asBugDefect = ticket as BugDefect;
+                if(typeof(T) == typeof(BugDefect)){
+                    BugDefect ticketAsBugDefect = ticket as BugDefect;
+                    // Additional
+                    ticketAsBugDefect.Severity = ticketDetails[7];
 
-                //     additional = $"{additional}{delimeter1}{asBugDefect.Severity}";
-                // }
+                    Tickets.Add(ticketAsBugDefect as T);
+
+                }else{
+                    Tickets.Add(ticket);
+                }
 
 
-
-                Tickets.Add(ticket);
             }
             // close file when done
             sr.Close();
