@@ -114,10 +114,10 @@ public class BugDefect : Ticket
         return $"Id: {TicketId}\n" +
                $"Summary: {Summary}\n" +
                $"Status: {StatusesEnumToString(Status)}\n" +
-               $"Status: {PrioritiesEnumToString(Priority)}\n" +
+               $"Priority: {PrioritiesEnumToString(Priority)}\n" +
                $"Submitter: {Submitter}\n" +
                $"Assigned: {Assigned}\n" +
-               $"Genres: {string.Join(", ", Watching)}\n" +
+               $"Watching: {string.Join(", ", Watching)}\n" +
                $"Severity: {Severity}\n";
     }
 }

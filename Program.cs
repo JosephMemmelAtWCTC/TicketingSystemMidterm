@@ -54,12 +54,12 @@ do
     // }
     else if (menuCheckCommand == enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.Add_Ticket))
     {
-        BugDefect newTicket = userCreateNewTicket<BugDefect>();//TODO: Check ticket title during creation
+        BugDefect newTicket = userCreateNewTicket<BugDefect>();//TODO: Check ticket summary during creation
         if (ticketFile.isUniqueSummary(newTicket.Summary))
         {
             if(ticketFile.AddTicket(newTicket)){
                 //Inform user that ticket was created and added    
-                Console.WriteLine($"Your ticket with the title of \"{newTicket.Summary}\" was successfully added to the records.");
+                Console.WriteLine($"Your ticket with the summary of \"{newTicket.Summary}\" was successfully added to the records.");
             }else{
                 logger.Warn($"Your ticket was unable to be saved.");
             }
@@ -77,42 +77,38 @@ do
 } while (true);
 
 
-T userCreateNewTicket<T>() where T : Ticket, new() {
-    string ticketTitle = UserInteractions.UserCreatedStringObtainer("Please enter the title of the new ticket", 1, false, false);
+T userCreateNewTicket<T>() where T : Ticket, new(){
+    // Required by all
+
+    string ticketSummary = UserInteractions.UserCreatedStringObtainer("Please enter the summary of the new ticket", 5, false, false);
+    Ticket.STATUSES ticketStatus = Ticket.GetEnumStatusFromString(UserInteractions.OptionsSelector(TICKET_STATUSES_IN_ORDER));
+    Ticket.PRIORITIES ticketPriority = Ticket.GetEnumPriorityFromString(UserInteractions.OptionsSelector(TICKET_PRIORITIES_IN_ORDER));
+    string ticketSubmitter = UserInteractions.UserCreatedStringObtainer("Please enter the name of this ticket's submitter", 1, true, false);
+    string ticketAssigned = UserInteractions.UserCreatedStringObtainer("Enter the person assigned to the ticket", 1, true, false);
+    List<string> ticketWatching = new List<string>{ UserInteractions.UserCreatedStringObtainer("Enter the name of a person watching the ticket", 1, true, false)};
+
 
     if(typeof(T) == typeof(BugDefect))//TODO: Move to inside Ticket.cs so generics can be used without check
     {
-        T userCreatedTicket = new T{
-            TicketId = 0,
-            Summary = UserInteractions.UserCreatedStringObtainer("Please enter the summary of the new ticket", 5, true, false),
-            Status = Ticket.GetEnumStatusFromString(UserInteractions.OptionsSelector(TICKET_STATUSES_IN_ORDER)),
-            Priority = Ticket.GetEnumPriorityFromString(UserInteractions.OptionsSelector(TICKET_PRIORITIES_IN_ORDER)),
-            Submitter = UserInteractions.UserCreatedStringObtainer("Please enter the name of this ticket's submitter", 1, true, false),
-            Assigned = UserInteractions.UserCreatedStringObtainer("Enter the person assigned to the ticket", 1, true, false),
-            Watching = new List<string>{ UserInteractions.UserCreatedStringObtainer("Enter the name of a person watching the ticket", 1, true, false) }
+        BugDefect userCreatedTicket = new BugDefect{
+            Summary = ticketSummary,
+            Status = ticketStatus,
+            Priority = ticketPriority,
+            Submitter = ticketSubmitter,
+            Assigned = ticketAssigned,
+            Watching = ticketWatching,
         };
         List<string> selectedWatchers = userCreatedTicket.Watching;
         do
         {
-            selectedWatchers.Add(UserInteractions.UserCreatedStringObtainer("Enter the name of another person watching the ticket or leave blank to compleate the ticket", 0, false, true));
+            selectedWatchers.Add(UserInteractions.UserCreatedStringObtainer("Enter the name of another person watching the ticket or leave blank to stop adding watchers", 0, false, true));
         } while (selectedWatchers.Last().Length != 0);
-        selectedWatchers.RemoveAt(selectedWatchers.Count() - 1);
 
+        selectedWatchers.RemoveAt(selectedWatchers.Count() - 1);
         userCreatedTicket.Watching = selectedWatchers;
-        return userCreatedTicket;
-        // return new T
-        // {
-        //     TicketId = 123,
-        //     title = ticketTitle,
-        //     director = UserInteractions.UserCreatedStringObtainer("Please enter the director's name", 1, false, false),
-        //     // timespan (hours, minutes, seconds)
-        //     runningTime = new TimeSpan(
-        //         UserInteractions.UserCreatedIntObtainer("Please enter the ticket's runtime (hours)", 0, 24/*int.MaxValue*/, false, 0),
-        //         UserInteractions.UserCreatedIntObtainer("Please enter the ticket's runtime (minutes)", 0, 59, false, 0),
-        //         UserInteractions.UserCreatedIntObtainer("Please enter the ticket's runtime (seconds)", 0, 59, false, 0)
-        //         ),
-        //     genres = UserInteractions.RepeatingGenreUserInteractions.OptionsSelector(false, false)
-        // };
+        userCreatedTicket.Severity = UserInteractions.UserCreatedStringObtainer("Plese explain the severity of the bug/defect ticket", 5, false, false);
+
+        return userCreatedTicket as T;
     }
     return new T{
         TicketId = 0,
@@ -133,7 +129,7 @@ T userCreateNewTicket<T>() where T : Ticket, new() {
 // Ticket ticket = new Ticket
 // {
 //     ticketId = 123,
-//     title = "Greatest Ticket Ever, The (2023)",
+//     summary = "Greatest Ticket Ever, The (2023)",
 //     director = "Jeff Grissom",
 //     // timespan (hours, minutes, seconds)
 //     runningTime = new TimeSpan(2, 21, 23),
@@ -143,7 +139,7 @@ T userCreateNewTicket<T>() where T : Ticket, new() {
 // Album album = new Album
 // {
 //     ticketId = 321,
-//     title = "Greatest Album Ever, The (2020)",
+//     summary = "Greatest Album Ever, The (2020)",
 //     artist = "Jeff's Awesome Band",
 //     recordLabel = "Universal Music Group",
 //     genres = { "Rock" }
@@ -152,7 +148,7 @@ T userCreateNewTicket<T>() where T : Ticket, new() {
 // Book book = new Book
 // {
 //     ticketId = 111,
-//     title = "Super Cool Book",
+//     summary = "Super Cool Book",
 //     author = "Jeff Grissom",
 //     pageCount = 101,
 //     publisher = "",

@@ -102,6 +102,7 @@ public class TicketFile<T> where T : Ticket, new()
         return true;
     }
 
+
     public bool AddTicket(T ticket)
     {
         try
@@ -114,8 +115,17 @@ public class TicketFile<T> where T : Ticket, new()
             // write ticket data to file
             //TODO: NEED TO WRITE LINE
 
+            string lineToCore = $"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{ticket.Status}{delimeter1}{ticket.Priority}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{string.Join(delimeter2,ticket.Watching)}";
+            string additional = "";
 
-            sw.WriteLine($"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{ticket.Status}{delimeter1}{ticket.Priority}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{string.Join(delimeter2,ticket.Watching)}");
+            if(typeof(T) == typeof(BugDefect)){
+                BugDefect asBugDefect = ticket as BugDefect;
+
+                additional = $"{additional}{delimeter1}{asBugDefect.Severity}";
+            }
+
+
+            sw.WriteLine($"{lineToCore}{additional}");
 
             sw.Close();
             // add ticket details to List
