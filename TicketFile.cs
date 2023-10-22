@@ -65,6 +65,12 @@ public class TicketFile<T> where T : Ticket, new()
                     }
                 }
 
+                // Console.WriteLine("LINE = "+line);
+                // for (int i = 0; i < ticketDetails.Length; i++)
+                // {
+                //     Console.WriteLine("ticketDetails["+i+"]="+ticketDetails[i]);
+                // }
+
                 ticket.TicketId = UInt64.Parse(ticketDetails[0]);
                 ticket.Summary = ticketDetails[1];
                 ticket.Status = Ticket.GetEnumStatusFromString(ticketDetails[2]);
@@ -75,11 +81,19 @@ public class TicketFile<T> where T : Ticket, new()
 
                 if(typeof(T) == typeof(BugDefect)){
                     BugDefect ticketAsBugDefect = ticket as BugDefect;
-                    // Additional
+                    // Additional fields
                     ticketAsBugDefect.Severity = ticketDetails[7];
 
                     Tickets.Add(ticketAsBugDefect as T);
+                }else if(typeof(T) == typeof(Enhancement)){
+                    Enhancement ticketAsEnhancement = ticket as Enhancement;
+                    // Additional fields
+                    ticketAsEnhancement.Software = ticketDetails[7];
+                    ticketAsEnhancement.Cost = Double.Parse(ticketDetails[8].Substring(1));
+                    ticketAsEnhancement.Reason = ticketDetails[9];
+                    ticketAsEnhancement.Estimate = ticketDetails[10];
 
+                    Tickets.Add(ticketAsEnhancement as T);
                 }else{
                     Tickets.Add(ticket);
                 }

@@ -9,21 +9,27 @@ const string enhancementsPath = "Enhancements.csv";
 const string tasksPath = "Task.csv";
 
 // Scrub files
-string ticketsScrubbedFile = FileScrubber<BugDefect>.ScrubTickets(ticketsPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
-logger.Info(ticketsScrubbedFile);
+string bugDefectScrubbedFile = FileScrubber<BugDefect>.ScrubTickets(ticketsPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
+logger.Info(bugDefectScrubbedFile);
 string enhancementsScrubbedFile = FileScrubber<Enhancement>.ScrubTickets(enhancementsPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
 logger.Info(enhancementsScrubbedFile);
 // string tasksScrubbedFile = FileScrubber<Task>.ScrubTickets(tasksPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
 // logger.Info(tasksScrubbedFile);
 
 
-TicketFile<BugDefect> ticketFile = new TicketFile<BugDefect>(ticketsScrubbedFile, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
+TicketFile<BugDefect> ticketFileBugDefect = new TicketFile<BugDefect>(bugDefectScrubbedFile, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
+TicketFile<Enhancement> ticketFileEnhancement = new TicketFile<Enhancement>(enhancementsScrubbedFile, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
+TicketFile<Task> ticketFileTask = new TicketFile<Task>(enhancementsScrubbedFile, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
 
 
-string[] MAIN_MENU_OPTIONS_IN_ORDER = { enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.View_Tickets_No_Filter),
+string[] MAIN_MENU_OPTIONS_IN_ORDER = { enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.View_Tickets_No_Filter),
                                         // enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.View_Tickets_Filter),
-                                        enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.Add_Ticket),
-                                        enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.Exit)};
+                                        enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.Add_Ticket),
+                                        enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.Exit)};
+
+string[] TICKET_TYPES_IN_ORDER = { enumToStringTicketTypeWorkArround(TICKET_TYPES.Bug_Defect),
+                                   enumToStringTicketTypeWorkArround(TICKET_TYPES.Enhancment),
+                                   enumToStringTicketTypeWorkArround(TICKET_TYPES.Task)};
 
 string[] TICKET_STATUSES_IN_ORDER = {Ticket.StatusesEnumToString(Ticket.STATUSES.OPEN),
                                      Ticket.StatusesEnumToString(Ticket.STATUSES.REOPENDED),
@@ -45,38 +51,79 @@ do
 
     logger.Info($"User choice: \"{menuCheckCommand}\"");
 
-    if (menuCheckCommand == enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.Exit))
+    if (menuCheckCommand == enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.Exit))
     {//If user intends to exit the program
         logger.Info("Program quiting...");
         return;
     }
-    else if (menuCheckCommand == enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.View_Tickets_No_Filter))
+    else if (menuCheckCommand == enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.View_Tickets_No_Filter))
     {
-        UserInteractions.PrintTicketList(ticketFile.Tickets);
+        // UserInteractions.PrintTicketList(ticketFileBugDefect.Tickets);
+        UserInteractions.PrintTicketList(ticketFileEnhancement.Tickets);
     }
     // else if (menuCheckCommand == enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.View_Tickets_Filter))
     // {
     // }
-    else if (menuCheckCommand == enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.Add_Ticket))
+    else if (menuCheckCommand == enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.Add_Ticket))
     {
-        BugDefect newTicket = userCreateNewTicket<BugDefect>();//TODO: Check ticket summary during creation
-        if (ticketFile.isUniqueSummary(newTicket.Summary))
-        {
-            if(ticketFile.AddTicket(newTicket)){
-                //Inform user that ticket was created and added    
-                Console.WriteLine($"Your ticket with the summary of \"{newTicket.Summary}\" was successfully added to the records.");
+        // Type newTicketType;
+        string selectedTicketType = UserInteractions.OptionsSelector(TICKET_TYPES_IN_ORDER);
+        Ticket newTicket = null;
+
+        // Create newTicket as requested type
+        if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Bug_Defect)){
+            // newTicketType = typeof(BugDefect);
+            newTicket = userCreateNewTicket<BugDefect>();
+        }else if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Enhancment)){
+            // newTicketType = typeof(Enhancement);
+            newTicket = userCreateNewTicket<Enhancement>();
+        }else if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Task)){
+            // newTicketType = typeof(Task);
+            newTicket = userCreateNewTicket<Task>();
+        }else{
+            logger.Fatal("Somehow a ticket type was slected that did not fall under the the existing commands, this should never have been triggered. Improper ticket type is getting through");
+        }
+
+        bool savedSucuessfully = false;
+        bool wasDuplicatSummary = false;
+
+        // Store newTicket to respective file
+        if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Bug_Defect)){
+            if(ticketFileBugDefect.isUniqueSummary(newTicket.Summary)){
+                savedSucuessfully = ticketFileBugDefect.AddTicket(newTicket as BugDefect);
             }else{
-                logger.Warn($"Your ticket was unable to be saved.");
+                wasDuplicatSummary = true;
+            }
+        }else if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Enhancment)){
+            if(ticketFileEnhancement.isUniqueSummary(newTicket.Summary)){
+                savedSucuessfully = ticketFileEnhancement.AddTicket(newTicket as Enhancement);
+            }else{
+                wasDuplicatSummary = true;
+            }
+        }else if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Task)){
+            if(ticketFileEnhancement.isUniqueSummary(newTicket.Summary)){
+                savedSucuessfully = ticketFileTask.AddTicket(newTicket as Task);
+            }else{
+                wasDuplicatSummary = true;
             }
         }
-        else
+
+
+        if(savedSucuessfully && newTicket != null)
         {
-            logger.Warn($"Duplicate ticket record on ticket \"{newTicket.Summary}\" with id \"{newTicket.TicketId}\". Not adding to records.");
+            //Inform user that ticket was created and added    
+            Console.WriteLine($"Your ticket with the summary of \"{newTicket.Summary}\" was successfully added to the records.");
+        }
+        else if(wasDuplicatSummary)
+        {
+            logger.Warn($"Duplicate ticket record summary on ticket \"{newTicket.Summary}\" with id \"{newTicket.TicketId}\". Not adding to records.");
+        }else{
+            logger.Warn("Was unable to save your record.");
         }
     }
     else
     {
-        logger.Fatal("Somehow, menuCheckCommand was slected that did not fall under the the existing commands, this should never have been triggered. Improper menuCheckCommand is getting through");
+        logger.Fatal("Somehow menuCheckCommand was slected that did not fall under the the existing commands, this should never have been triggered. Improper menuCheckCommand is getting through");
     }
 
 } while (true);
@@ -169,15 +216,26 @@ logger.Info("Program ended");
 
 // vvv UNUM STUFF vvv
 
-string enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS mainMenuEnum)
+string enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS mainMenuEnum)
 {
     return mainMenuEnum switch
     {
         MAIN_MENU_OPTIONS.Exit => "Quit program",
         MAIN_MENU_OPTIONS.View_Tickets_No_Filter => $"View tickets on file in order (display max ammount is {UserInteractions.PRINTOUT_RESULTS_MAX_TERMINAL_SPACE_HEIGHT:N0})",
-        MAIN_MENU_OPTIONS.View_Tickets_Filter => $"Filter tickets on file",
+        MAIN_MENU_OPTIONS.View_Tickets_Filter => "Filter tickets on file",
         MAIN_MENU_OPTIONS.Add_Ticket => "Add new ticket to file",
-        _ => "ERROR"
+        _ => "ERROR_MAIN_MENU_OPTION_DOES_NOT_EXIST"
+    };
+}
+
+string enumToStringTicketTypeWorkArround(TICKET_TYPES ticketTypeEnum)
+{
+    return ticketTypeEnum switch
+    {
+        TICKET_TYPES.Bug_Defect => "Bug/Defect",
+        TICKET_TYPES.Enhancment => "Enhancement",
+        TICKET_TYPES.Task => "Task",
+        _ => "ERROR_TICKET_TYPE_DOES_NOT_EXIST"
     };
 }
 
@@ -187,4 +245,11 @@ public enum MAIN_MENU_OPTIONS
     View_Tickets_No_Filter,
     View_Tickets_Filter,
     Add_Ticket
+}
+
+public enum TICKET_TYPES
+{
+    Bug_Defect,
+    Enhancment,
+    Task
 }
