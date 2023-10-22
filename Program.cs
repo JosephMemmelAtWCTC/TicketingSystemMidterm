@@ -1,4 +1,5 @@
-﻿using NLog;
+﻿using Microsoft.AspNetCore.Mvc;
+using NLog;
 
 // Create instance of the Logger
 NLog.Logger logger = UserInteractions.getLogger();
@@ -154,14 +155,39 @@ T userCreateNewTicket<T>() where T : Ticket, new(){
         do
         {
             selectedWatchers.Add(UserInteractions.UserCreatedStringObtainer("Enter the name of another person watching the ticket or leave blank to stop adding watchers", 0, false, true));
-        } while (selectedWatchers.Last().Length != 0);
-
+        }while (selectedWatchers.Last().Length != 0);
         selectedWatchers.RemoveAt(selectedWatchers.Count() - 1);
         userCreatedTicket.Watching = selectedWatchers;
+
         userCreatedTicket.Severity = UserInteractions.UserCreatedStringObtainer("Plese explain the severity of the bug/defect ticket", 5, false, false);
 
         return userCreatedTicket as T;
+    }else if(typeof(T) == typeof(Enhancement))
+    {
+        Enhancement userCreatedTicket = new Enhancement{
+            Summary = ticketSummary,
+            Status = ticketStatus,
+            Priority = ticketPriority,
+            Submitter = ticketSubmitter,
+            Assigned = ticketAssigned,
+            Watching = ticketWatching,
+        };
+        List<string> selectedWatchers = userCreatedTicket.Watching;
+        do
+        {
+            selectedWatchers.Add(UserInteractions.UserCreatedStringObtainer("Enter the name of another person watching the ticket or leave blank to stop adding watchers", 0, false, true));
+        }while (selectedWatchers.Last().Length != 0);
+        selectedWatchers.RemoveAt(selectedWatchers.Count() - 1);
+        userCreatedTicket.Watching = selectedWatchers;
+
+        userCreatedTicket.Software = UserInteractions.UserCreatedStringObtainer("Please enter the software of the enhancement ticket", 1, false, false);
+        userCreatedTicket.Cost = UserInteractions.UserCreatedDoubleObtainer("Please enter the cost of the enhancement ticket", 0, 1_000_000_000,false,0,2);
+        userCreatedTicket.Reason = UserInteractions.UserCreatedStringObtainer("Please enter the reason of the enhancement ticket", 5, false, false);
+        userCreatedTicket.Estimate = UserInteractions.UserCreatedStringObtainer("Please enter the estimate of the enhancement ticket", 1, false, false);
+
+        return userCreatedTicket as T;
     }
+
     return new T{
         TicketId = 0,
         Summary = "",

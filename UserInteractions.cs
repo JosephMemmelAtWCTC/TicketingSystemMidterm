@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Routing.Constraints;
 using NLog;
 /**
     UserInteractions is a class to assist in getting input from the user (and sometimes displaying infromation) in other to standardize common requests
@@ -115,7 +116,7 @@ public sealed class UserInteractions{ //Sealed to prevent inheritance, set up as
         int defaultAsInt = 0;
 
         if(defaultValue != "" && !int.TryParse(defaultValue, out defaultAsInt)){
-            logger.Error($"Could not use defaultValue of \"{defaultValue}\" as an int. Argument exception error!");
+            logger.Error($"Could not use default value of \"{defaultValue}\" as an int. Argument exception error!");
             defaultValue = "";
         }
         do{
@@ -153,6 +154,78 @@ public sealed class UserInteractions{ //Sealed to prevent inheritance, set up as
         }while(userInputRaw == null);
         return userChoosenInteger;
     }
+
+    public static double UserCreatedDoubleObtainer(string message, double minValue, double maxValue, bool showRange){
+        return userCreatedDoubleObtainer(message, minValue, maxValue, showRange, "",  -1);
+    }    
+    public static double UserCreatedDoubleObtainer(string message, double minValue, double maxValue, bool showRange, int places){
+        return userCreatedDoubleObtainer(message, minValue, maxValue, showRange, "", places);
+    }
+    public static double UserCreatedDoubleObtainer(string message, double minValue, double maxValue, bool showRange, double defaultValue, int places){
+        return userCreatedDoubleObtainer(message, minValue, maxValue, showRange, defaultValue.ToString(), places);
+    }
+
+    public static double userCreatedDoubleObtainer(string message, double minValue, double maxValue, bool showRange, string defaultValue, int places){//Use -1 for no places
+    string userInputRaw = null;
+    double userChoosenDouble;
+    double defaultAsDouble = 0;
+
+    if(defaultValue != "" && !double.TryParse(defaultValue, out defaultAsDouble)){
+        logger.Error($"Could not use default value of \"{defaultValue}\" as a double. Argument exception error!");
+        defaultValue = "";
+    }
+    do{
+        Console.Write($"\n{message}{(showRange? $" ({minValue} to {maxValue})" : "")}{(defaultValue==""? "" : $" or leave blank to use \"{defaultValue}\"")}: ");
+        userInputRaw = Console.ReadLine().Trim();
+        if (double.TryParse(userInputRaw, out userChoosenDouble) || userInputRaw.Length == 0) //Duplicate .Length == 0 checking to have code in the same location
+        {
+            if(defaultValue != null && userInputRaw.Length == 0) //Was blank and allowed
+            {
+                userChoosenDouble = defaultAsDouble;
+            }
+            else if(defaultValue == null && userInputRaw.Length == 0)
+            {
+                logger.Error("Your choosen number was empty, please try again.");
+                userInputRaw = null; //Was blank and not allowed
+            }
+            else if(userChoosenDouble < minValue)
+            {
+                string formattedMinValue, formattedMaxValue;
+                if(places == -1){
+                    formattedMinValue = minValue.ToString($"N{places}");
+                    formattedMaxValue = maxValue.ToString($"N{places}");                    
+                }else{
+                    formattedMinValue = minValue.ToString();
+                    formattedMaxValue = maxValue.ToString();                    
+                }
+
+                logger.Error($"Your choosen number choice was below \"{minValue}\", the range is ({formattedMinValue} to {formattedMaxValue}), please try again.");
+                userInputRaw = null; //Under min
+            }
+            else if(userChoosenDouble > maxValue)
+            {
+                logger.Error($"Your choosen number choice was above \"{maxValue}\", the range is ({minValue} to {maxValue}), please try again.");
+                userInputRaw = null; //Above max
+            }
+            else if(places != -1) //No problems so far, check for placeValues
+            {
+                int decimalPointIndex = userInputRaw.ToString().LastIndexOf("."); //Uses last to work backwards
+                //Decimal point was found and had too many
+                if(decimalPointIndex != -1 && userInputRaw.Length-1 - decimalPointIndex > places){
+                    logger.Error($"Your choosen number had too many decimal place values, can only have max of {places} decimal places, please try again.");
+                    userInputRaw = null;
+                }
+            }
+        }
+        else
+        {
+            //User response was not a double
+            logger.Error("Your choosen id choice was not a possible number, please try again.");
+            userInputRaw = null; //Was not an integer
+        }
+    }while(userInputRaw == null);
+    return userChoosenDouble;
+}
 
     // public static List<Ticket.GENRES> RepeatingGenreOptionsSelector(bool exclusivity, bool includeErrorEnum){
     //     string[] remainingGenresAsStrings = new string[ALL_MEDIA_GENRES.Length + (includeErrorEnum? 1 : 0)]; // -1 to remove error enum but then +1 for the exit option
