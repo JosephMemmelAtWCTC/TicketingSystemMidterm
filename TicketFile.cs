@@ -65,6 +65,14 @@ public class TicketFile<T> where T : Ticket, new()
                     }
                 }
 
+
+                // Console.WriteLine("LINE = "+line);
+                // for (int i = 0; i < ticketDetails.Length; i++)
+                // {
+                //     Console.WriteLine("ticketDetails["+i+"]="+ticketDetails[i]);
+                // }
+
+                
                 // Console.WriteLine("LINE = "+line);
                 // for (int i = 0; i < ticketDetails.Length; i++)
                 // {
@@ -79,13 +87,14 @@ public class TicketFile<T> where T : Ticket, new()
                 ticket.Assigned = ticketDetails[5];
                 ticket.Watching = ticketDetails[6].Split(delimeter2).ToList();
 
-                if(typeof(T) == typeof(BugDefect)){
+                Type ticketType = typeof(T);
+                if(ticketType == typeof(BugDefect)){
                     BugDefect ticketAsBugDefect = ticket as BugDefect;
                     // Additional fields
                     ticketAsBugDefect.Severity = ticketDetails[7];
 
                     Tickets.Add(ticketAsBugDefect as T);
-                }else if(typeof(T) == typeof(Enhancement)){
+                }else if(ticketType == typeof(Enhancement)){
                     Enhancement ticketAsEnhancement = ticket as Enhancement;
                     // Additional fields
                     ticketAsEnhancement.Software = ticketDetails[7];
@@ -94,7 +103,7 @@ public class TicketFile<T> where T : Ticket, new()
                     ticketAsEnhancement.Estimate = ticketDetails[10];
 
                     Tickets.Add(ticketAsEnhancement as T);
-                }else if(typeof(T) == typeof(Task)){
+                }else if(ticketType == typeof(Task)){
                     Task ticketAsTask = ticket as Task;
                     // Additional fields
                     ticketAsTask.ProjectName = ticketDetails[7];
@@ -146,10 +155,19 @@ public class TicketFile<T> where T : Ticket, new()
             string lineToCore = $"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{Ticket.StatusesEnumToString(ticket.Status)}{delimeter1}{Ticket.PrioritiesEnumToString(ticket.Priority)}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{string.Join(delimeter2,ticket.Watching)}";
             string additional = "";
 
-            if(typeof(T) == typeof(BugDefect)){
+            Type saveType = typeof(T);
+            if(saveType == typeof(BugDefect)){
                 BugDefect asBugDefect = ticket as BugDefect;
 
                 additional = $"{additional}{delimeter1}{asBugDefect.Severity}";
+            }else if(saveType == typeof(Enhancement)){
+                Enhancement asEnhancement = ticket as Enhancement;
+
+                additional = $"{additional}{delimeter1}{asEnhancement.Software}{delimeter1}{asEnhancement.Cost:c}{delimeter1}{asEnhancement.Reason}{delimeter1}{asEnhancement.Estimate}";
+            }else if(saveType == typeof(Task)){
+                Task asTask = ticket as Task;
+                
+                additional = $"{additional}{delimeter1}{asTask.ProjectName}{delimeter1}{asTask.DueDate}";
             }
 
 
@@ -159,7 +177,7 @@ public class TicketFile<T> where T : Ticket, new()
             // add ticket details to List
             Tickets.Add(ticket);
             // log transaction
-            logger.Info("Media id {Id} added", ticket.TicketId);
+            logger.Info("Ticket id {Id} added", ticket.TicketId);
         }
         catch (Exception ex)
         {

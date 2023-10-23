@@ -111,7 +111,7 @@ public class BugDefect : Ticket
     public string Severity { get; set; }
     public override string Display()
     {
-        return $"Id: {TicketId}\n" +
+        return $"Id:        {TicketId}\n" +
                $"Summary:   {Summary}\n" +
                $"Status:    {StatusesEnumToString(Status)}\n" +
                $"Priority:  {PrioritiesEnumToString(Priority)}\n" +
@@ -134,7 +134,7 @@ public class Enhancement : Ticket
 
     public override string Display()
     {
-        return $"Id: {TicketId}\n" +
+        return $"Id:        {TicketId}\n" +
                $"Summary:   {Summary}\n" +
                $"Status:    {StatusesEnumToString(Status)}\n" +
                $"Priority:  {PrioritiesEnumToString(Priority)}\n" +
@@ -156,7 +156,7 @@ public class Task : Ticket
 
     public override string Display()
     {
-        return $"Id: {TicketId}\n" +
+        return $"Id:          {TicketId}\n" +
                $"Summary:     {Summary}\n" +
                $"Status:      {StatusesEnumToString(Status)}\n" +
                $"Priority:    {PrioritiesEnumToString(Priority)}\n" +

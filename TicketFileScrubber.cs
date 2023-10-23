@@ -4,7 +4,7 @@ public static class FileScrubber<T> where T: Ticket, new()
 {
 
     //Debugging
-    const bool DEBUGGING_ALWAYS_SCRUB_FILE = true;
+    const bool DEBUGGING_ALWAYS_SCRUB_FILE = false;
 
     public static string ScrubTickets(string readFile, NLog.Logger logger, string delimeter1, string delimeter2)
     {

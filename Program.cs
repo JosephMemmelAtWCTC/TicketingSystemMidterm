@@ -59,8 +59,8 @@ do
     }
     else if (menuCheckCommand == enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.View_Tickets_No_Filter))
     {
-        // UserInteractions.PrintTicketList(ticketFileBugDefects.Tickets);
-        // UserInteractions.PrintTicketList(ticketFileEnhancements.Tickets);
+        UserInteractions.PrintTicketList(ticketFileBugDefects.Tickets);
+        UserInteractions.PrintTicketList(ticketFileEnhancements.Tickets);
         UserInteractions.PrintTicketList(ticketFileTasks.Tickets);
     }
     // else if (menuCheckCommand == enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.View_Tickets_Filter))
@@ -163,7 +163,8 @@ T userCreateNewTicket<T>() where T : Ticket, new(){
         userCreatedTicket.Severity = UserInteractions.UserCreatedStringObtainer("Plese explain the severity of the bug/defect ticket", 5, false, false);
 
         return userCreatedTicket as T;
-    }else if(typeof(T) == typeof(Enhancement))
+    }
+    else if(typeof(T) == typeof(Enhancement))
     {
         Enhancement userCreatedTicket = new Enhancement{
             Summary = ticketSummary,
@@ -188,6 +189,33 @@ T userCreateNewTicket<T>() where T : Ticket, new(){
 
         return userCreatedTicket as T;
     }
+    else if(typeof(T) == typeof(Task))
+    {
+        Task userCreatedTicket = new Task{
+            Summary = ticketSummary,
+            Status = ticketStatus,
+            Priority = ticketPriority,
+            Submitter = ticketSubmitter,
+            Assigned = ticketAssigned,
+            Watching = ticketWatching,
+        };
+        List<string> selectedWatchers = userCreatedTicket.Watching;
+        do
+        {
+            selectedWatchers.Add(UserInteractions.UserCreatedStringObtainer("Enter the name of another person watching the ticket or leave blank to stop adding watchers", 0, false, true));
+        }while (selectedWatchers.Last().Length != 0);
+        selectedWatchers.RemoveAt(selectedWatchers.Count() - 1);
+        userCreatedTicket.Watching = selectedWatchers;
+
+        userCreatedTicket.ProjectName = UserInteractions.UserCreatedStringObtainer("Please enter the project name of the task ticket", 1, false, false);
+        int dueMonth = UserInteractions.UserCreatedIntObtainer("Please enter the due date (Month) of the task ticket", 1, 12, false, DateOnly.FromDateTime(DateTime.Now).Month);
+        //TODO: Check if date is valid - place limit on days depending on month and year
+        int dueDay = UserInteractions.UserCreatedIntObtainer("Please enter the due date (Day) of the task ticket", 1, 31, false, DateOnly.FromDateTime(DateTime.Now).Day);
+        int dueYear = UserInteractions.UserCreatedIntObtainer("Please enter the due date (Year) of the task ticket", 2000, 2099, false, DateOnly.FromDateTime(DateTime.Now).Year);
+        userCreatedTicket.DueDate = new DateOnly(dueYear, dueMonth, dueDay);
+
+        return userCreatedTicket as T;
+    }
 
     return new T{
         TicketId = 0,
@@ -199,44 +227,6 @@ T userCreateNewTicket<T>() where T : Ticket, new(){
         Watching = new List<string>()
     };
 }
-
-
-
-
-// Console.WriteLine("--"+UserInteractions.userCreatedIntObtainer("Please enter an Id ", -50, 100, true, 42));
-
-// Ticket ticket = new Ticket
-// {
-//     ticketId = 123,
-//     summary = "Greatest Ticket Ever, The (2023)",
-//     director = "Jeff Grissom",
-//     // timespan (hours, minutes, seconds)
-//     runningTime = new TimeSpan(2, 21, 23),
-//     genres = { "Comedy", "Romance" }
-// };
-
-// Album album = new Album
-// {
-//     ticketId = 321,
-//     summary = "Greatest Album Ever, The (2020)",
-//     artist = "Jeff's Awesome Band",
-//     recordLabel = "Universal Music Group",
-//     genres = { "Rock" }
-// };
-
-// Book book = new Book
-// {
-//     ticketId = 111,
-//     summary = "Super Cool Book",
-//     author = "Jeff Grissom",
-//     pageCount = 101,
-//     publisher = "",
-//     genres = { "Suspense", "Mystery" }
-// };
-
-// Console.WriteLine(ticket.Display());
-// Console.WriteLine(album.Display());
-// Console.WriteLine(book.Display());
 
 logger.Info("Program ended");
 
