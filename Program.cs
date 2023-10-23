@@ -26,9 +26,14 @@ TicketFile<Task> ticketFileTasks = new TicketFile<Task>(tasksScrubbedFile, logge
 
 
 string[] MAIN_MENU_OPTIONS_IN_ORDER = { enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.View_Tickets_No_Filter),
-                                        // enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.View_Tickets_Filter),
+                                        enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.View_Tickets_Filter),
                                         enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.Add_Ticket),
                                         enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.Exit)};
+
+string[] FILTER_MENU_OPTIONS_IN_ORDER = { enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Type),
+                                          enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Summary),
+                                          enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Run_Filter)};
+
 
 string[] TICKET_TYPES_IN_ORDER = { enumToStringTicketTypeWorkArround(TICKET_TYPES.Bug_Defect),
                                    enumToStringTicketTypeWorkArround(TICKET_TYPES.Enhancment),
@@ -148,6 +153,19 @@ do
             logger.Warn("Was unable to save your record.");
         }
     }
+    // else if (menuCheckCommand == enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.View_Tickets_Filter)){
+    //     TICKET_TYPES[] filterAllowTypes = TICKET_TYPES_IN_ORDER;
+    //     // Default, allow all
+    //     filterAllowTypes = 
+
+    //     string filterSearchString = ""; //TODO: Optimize filtering
+
+    //     // FILTER_MENU_OPTIONS 
+
+    //     // FILTER_MENU_OPTIONS_IN_ORDER
+        
+    //     string selectedTicketType = UserInteractions.OptionsSelector(TICKET_TYPES_IN_ORDER);
+    // }
     else
     {
         logger.Fatal("Somehow menuCheckCommand was slected that did not fall under the the existing commands, this should never have been triggered. Improper menuCheckCommand is getting through");
@@ -213,7 +231,7 @@ T userCreateNewTicket<T>() where T : Ticket, new()
         userCreatedTicket.Software = UserInteractions.UserCreatedStringObtainer("Please enter the software of the enhancement ticket", 1, false, false);
         userCreatedTicket.Cost = UserInteractions.UserCreatedDoubleObtainer($"Please enter the cost of the enhancement ticket (in {Enhancement.MONITORY_STARTER_ICON})", 0, 1_000_000_000, false, 0, 2);
         userCreatedTicket.Reason = UserInteractions.UserCreatedStringObtainer("Please enter the reason of the enhancement ticket", 5, false, false);
-        userCreatedTicket.Estimate = UserInteractions.UserCreatedStringObtainer("Please enter the estimate of the enhancement ticket", 1, false, false);
+        userCreatedTicket.Estimate = UserInteractions.UserCreatedStringObtainer("Please describe the time estimate of the enhancement ticket", 1, false, false);
 
         return userCreatedTicket as T;
     }
@@ -268,10 +286,21 @@ string enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS mainMenuEnum)
     return mainMenuEnum switch
     {
         MAIN_MENU_OPTIONS.Exit => "Quit program",
-        MAIN_MENU_OPTIONS.View_Tickets_No_Filter => $"View tickets on file in order (display max ammount is {UserInteractions.PRINTOUT_RESULTS_MAX_TERMINAL_SPACE_HEIGHT:N0})",
+        MAIN_MENU_OPTIONS.View_Tickets_No_Filter => $"View all tickets on file in order (display max ammount is {UserInteractions.PRINTOUT_RESULTS_MAX_TERMINAL_SPACE_HEIGHT/11:N0})",// Divide by 11 as 10 is the current max number of fields in a ticket and +1 for the empty spacing lines between
         MAIN_MENU_OPTIONS.View_Tickets_Filter => "Filter tickets on file",
         MAIN_MENU_OPTIONS.Add_Ticket => "Add new ticket to file",
         _ => "ERROR_MAIN_MENU_OPTION_DOES_NOT_EXIST"
+    };
+}
+
+string enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS filterMenuEnum)
+{
+    return filterMenuEnum switch
+    {
+        FILTER_MENU_OPTIONS.Type => "Add filter tickets by type",
+        FILTER_MENU_OPTIONS.Summary => "Add filter tickets by summary",
+        FILTER_MENU_OPTIONS.Run_Filter => "Run the compleated filters",
+        _ => "ERROR_FILTER_MENU_OPTION_DOES_NOT_EXIST"
     };
 }
 
@@ -292,6 +321,13 @@ public enum MAIN_MENU_OPTIONS
     View_Tickets_No_Filter,
     View_Tickets_Filter,
     Add_Ticket
+}
+
+public enum FILTER_MENU_OPTIONS
+{
+    Type,
+    Summary,
+    Run_Filter
 }
 
 public enum TICKET_TYPES

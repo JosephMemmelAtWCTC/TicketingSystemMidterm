@@ -45,7 +45,7 @@ public class TicketFile<T> where T : Ticket, new()
                     // TODO: Make method as these are simmilar in the scrubber for picking appart from quotation marks
                     // quote = comma or quotes in ticket summary
                     string[] before = line.Substring(0,idx).Split(delimeter1);
-                    string between = line.Substring(idx, line.LastIndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR)-1);
+                    string between = line.Substring(idx+1, line.LastIndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR)-3); //+1 & -3 are to remove the quotation marks
                     string[] after = line.Substring(line.LastIndexOf(Ticket.START_END_SUMMARY_WITH_DELIMETER1_INDICATOR)+1).Split(delimeter1);
 
                     ticketDetails = new string[before.Length + after.Length - 1];
