@@ -94,6 +94,13 @@ public class TicketFile<T> where T : Ticket, new()
                     ticketAsEnhancement.Estimate = ticketDetails[10];
 
                     Tickets.Add(ticketAsEnhancement as T);
+                }else if(typeof(T) == typeof(Task)){
+                    Task ticketAsTask = ticket as Task;
+                    // Additional fields
+                    ticketAsTask.ProjectName = ticketDetails[7];
+                    ticketAsTask.DueDate = DateOnly.Parse(ticketDetails[8]);
+
+                    Tickets.Add(ticketAsTask as T);
                 }else{
                     Tickets.Add(ticket);
                 }

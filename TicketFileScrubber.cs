@@ -1,3 +1,4 @@
+using Microsoft.VisualBasic;
 using NLog;
 public static class FileScrubber<T> where T: Ticket, new()
 {
@@ -8,8 +9,8 @@ public static class FileScrubber<T> where T: Ticket, new()
     public static string ScrubTickets(string readFile, NLog.Logger logger, string delimeter1, string delimeter2)
     {
         //TODO: !!! Put back try catch
-        // try
-        // {
+        try
+        {
             // determine name of writeFile
             string ext = readFile.Split('.').Last();
             string writeFile = readFile.Replace(ext, $"scrubbed.{ext}");
@@ -93,6 +94,7 @@ public static class FileScrubber<T> where T: Ticket, new()
                             ticket = (BugDefect)ticket;
                             if(ticket is BugDefect bugDefect){
                                 bugDefect.Severity = ticketParts.Length > 7 ? ticketParts[7] : "[Severity not set]";
+                                
                                 additionalParts = $"{additionalParts}{delimeter1}{bugDefect.Severity}";
                             }
                         }else if(typeof(T) == typeof(Enhancement)){
@@ -102,10 +104,23 @@ public static class FileScrubber<T> where T: Ticket, new()
                                 enhancement.Cost = ticketParts.Length > 8 ? Double.Parse(ticketParts[8].Substring((ticketParts[8].IndexOf(Enhancement.MONITORY_STARTER_ICON)==0)? 1 : 0)) : 0;
                                 enhancement.Reason = ticketParts.Length > 9 ? ticketParts[9] : "[Reason not set]";
                                 enhancement.Estimate = ticketParts.Length > 10 ? ticketParts[10] : "[Estimate not set]";
+
                                 additionalParts = $"{additionalParts}{delimeter1}{enhancement.Software}{delimeter1}{enhancement.Cost:c}{delimeter1}{enhancement.Reason}{delimeter1}{enhancement.Estimate}";
                             }
-                        }
+                        }else if(typeof(T) == typeof(Task)){
+                            ticket = (Task)ticket;
+                            if(ticket is Task task){
+                                task.ProjectName = ticketParts.Length > 7 ? ticketParts[7] : "[Project name not set]";
+                                if(ticketParts.Length > 8){
+                                    string[] dateParts = ticketParts[8].Split(delimeter2);
+                                    task.DueDate = new DateOnly(int.Parse(dateParts[2]),int.Parse(dateParts[0]),int.Parse(dateParts[1]));
+                                }else{
+                                    task.DueDate = DateOnly.FromDateTime(DateTime.MaxValue.Date); //Sets to largest possible date if not found stored;
+                                }
 
+                                additionalParts = $"{additionalParts}{delimeter1}{task.ProjectName}{delimeter1}{task.DueDate}";
+                            }
+                        }
                         sw.WriteLine($"{storeBasicLine}{additionalParts}");
                     }
                 }
@@ -114,11 +129,11 @@ public static class FileScrubber<T> where T: Ticket, new()
                 logger.Info("File scrub ended");
             }
             return writeFile;
-        // }
-        // catch (Exception ex)
-        // {
-        //     logger.Error(ex.Message);
-        // }
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex.Message);
+        }
         return "";
     }
 }

@@ -7,20 +7,20 @@ logger.Info("Main program is running and log mager is started, program is runnin
 
 const string ticketsPath = "Tickets.csv";
 const string enhancementsPath = "Enhancements.csv";
-const string tasksPath = "Task.csv";
+const string tasksPath = "Tasks.csv";
 
 // Scrub files
 string bugDefectScrubbedFile = FileScrubber<BugDefect>.ScrubTickets(ticketsPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
 logger.Info(bugDefectScrubbedFile);
 string enhancementsScrubbedFile = FileScrubber<Enhancement>.ScrubTickets(enhancementsPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
 logger.Info(enhancementsScrubbedFile);
-// string tasksScrubbedFile = FileScrubber<Task>.ScrubTickets(tasksPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
-// logger.Info(tasksScrubbedFile);
+string tasksScrubbedFile = FileScrubber<Task>.ScrubTickets(tasksPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
+logger.Info(tasksScrubbedFile);
 
 
-TicketFile<BugDefect> ticketFileBugDefect = new TicketFile<BugDefect>(bugDefectScrubbedFile, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
-TicketFile<Enhancement> ticketFileEnhancement = new TicketFile<Enhancement>(enhancementsScrubbedFile, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
-TicketFile<Task> ticketFileTask = new TicketFile<Task>(enhancementsScrubbedFile, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
+TicketFile<BugDefect> ticketFileBugDefects = new TicketFile<BugDefect>(bugDefectScrubbedFile, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
+TicketFile<Enhancement> ticketFileEnhancements = new TicketFile<Enhancement>(enhancementsScrubbedFile, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
+TicketFile<Task> ticketFileTasks = new TicketFile<Task>(tasksScrubbedFile, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
 
 
 string[] MAIN_MENU_OPTIONS_IN_ORDER = { enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.View_Tickets_No_Filter),
@@ -59,8 +59,9 @@ do
     }
     else if (menuCheckCommand == enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.View_Tickets_No_Filter))
     {
-        // UserInteractions.PrintTicketList(ticketFileBugDefect.Tickets);
-        UserInteractions.PrintTicketList(ticketFileEnhancement.Tickets);
+        // UserInteractions.PrintTicketList(ticketFileBugDefects.Tickets);
+        // UserInteractions.PrintTicketList(ticketFileEnhancements.Tickets);
+        UserInteractions.PrintTicketList(ticketFileTasks.Tickets);
     }
     // else if (menuCheckCommand == enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.View_Tickets_Filter))
     // {
@@ -90,20 +91,20 @@ do
 
         // Store newTicket to respective file
         if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Bug_Defect)){
-            if(ticketFileBugDefect.isUniqueSummary(newTicket.Summary)){
-                savedSucuessfully = ticketFileBugDefect.AddTicket(newTicket as BugDefect);
+            if(ticketFileBugDefects.isUniqueSummary(newTicket.Summary)){
+                savedSucuessfully = ticketFileBugDefects.AddTicket(newTicket as BugDefect);
             }else{
                 wasDuplicatSummary = true;
             }
         }else if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Enhancment)){
-            if(ticketFileEnhancement.isUniqueSummary(newTicket.Summary)){
-                savedSucuessfully = ticketFileEnhancement.AddTicket(newTicket as Enhancement);
+            if(ticketFileEnhancements.isUniqueSummary(newTicket.Summary)){
+                savedSucuessfully = ticketFileEnhancements.AddTicket(newTicket as Enhancement);
             }else{
                 wasDuplicatSummary = true;
             }
         }else if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Task)){
-            if(ticketFileEnhancement.isUniqueSummary(newTicket.Summary)){
-                savedSucuessfully = ticketFileTask.AddTicket(newTicket as Task);
+            if(ticketFileEnhancements.isUniqueSummary(newTicket.Summary)){
+                savedSucuessfully = ticketFileTasks.AddTicket(newTicket as Task);
             }else{
                 wasDuplicatSummary = true;
             }
