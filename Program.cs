@@ -159,7 +159,7 @@ do
 
         TICKET_TYPES[] filterAllowTypes = (TICKET_TYPES[])Enum.GetValues(typeof(TICKET_TYPES)); //Get all enums of Ticket types
 
-        List<string> filterSearchStrings = new List<string>() {"A","B","C","D" }; //TODO: Optimize filtering
+        List<string> filterSearchStrings = new List<string>() { }; //TODO: Optimize filtering
 
 
         //TODO: Add statuses & priorities
@@ -202,13 +202,13 @@ do
             }
             else if (choosenFilterOption == enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Phrases))
             {
-                string[] keywordOptions = new string[] { "Remove phrases", "Add phrases", "Exit Phraes" };
+                string[] keywordOptions = new string[] { "Add phrases", "Remove phrases", "Exit Phraes" };
 
                 string selectedOption;
                 do{
                     selectedOption = UserInteractions.OptionsSelector(keywordOptions);
 
-                    if(selectedOption == keywordOptions[0]){
+                    if(selectedOption == keywordOptions[1]){
                         Console.WriteLine("Select the following to remove");
                         string[] leftAfterRemovel = UserInteractions.RepeatingOptionsSelector(filterSearchStrings.ToArray());
                         
@@ -217,14 +217,21 @@ do
                         {
                             filterSearchStrings.Add(phrase);
                         }
+                    }else if(selectedOption == keywordOptions[0]){
+                        Console.WriteLine("Add phrases to the filter (it's case-insensitive)");
+                        string newPhrase = null;
+                        do{
+                            newPhrase = UserInteractions.UserCreatedStringObtainer("Please input a phrase to add to the search, or leave blank to exit",-1,false,true);
+                            if(newPhrase.Length == 0){
+                                newPhrase = null;
+                            }else{
+                                filterSearchStrings.Add(newPhrase);
+                            }
+                        }while(newPhrase != null);
                     }
                 }while(selectedOption != keywordOptions[keywordOptions.Length-1]);
 
-                Console.WriteLine($"Current search phrases: {filterSearchStrings}");
-
-
-                
-
+                Console.WriteLine($"Current search phrases: {filterSearchStrings.Aggregate((current,next) => $"{current},\"{next}\"")}");
 
             }
         } while (choosenFilterOption != enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Run_Filter));
@@ -244,8 +251,10 @@ do
             filterRemainingTickets.AddRange(ticketFileTasks.Tickets);
         }
         // Filter by summary - (remove)
-        foreach (Ticket ticket in filterRemainingTickets)
+        for(int i=0; i< filterRemainingTickets.Count; i++)
         {
+            Ticket ticket = filterRemainingTickets[i];
+
             bool didNotFindAPhrase = true;
             foreach (string phrase in filterSearchStrings)
             {
@@ -271,9 +280,10 @@ do
                 }
                 if (!didNotFindAPhrase) { break; }
             }
-            if (didNotFindAPhrase)
+            if(didNotFindAPhrase)
             {
                 filterRemainingTickets.Remove(ticket);
+                i--;
             }
         }
 
