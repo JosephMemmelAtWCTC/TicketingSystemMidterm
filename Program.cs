@@ -35,9 +35,9 @@ string[] FILTER_MENU_OPTIONS_IN_ORDER = { enumToStringFilterMenuWorkarround(FILT
                                           enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Run_Filter)};
 
 
-string[] TICKET_TYPES_IN_ORDER = { enumToStringTicketTypeWorkArround(TICKET_TYPES.Bug_Defect),
-                                   enumToStringTicketTypeWorkArround(TICKET_TYPES.Enhancment),
-                                   enumToStringTicketTypeWorkArround(TICKET_TYPES.Task)};
+string[] TICKET_TYPES_IN_ORDER = { enumToStringTicketTypeWorkarround(TICKET_TYPES.Bug_Defect),
+                                   enumToStringTicketTypeWorkarround(TICKET_TYPES.Enhancment),
+                                   enumToStringTicketTypeWorkarround(TICKET_TYPES.Task)};
 
 string[] TICKET_STATUSES_IN_ORDER = {Ticket.StatusesEnumToString(Ticket.STATUSES.OPEN),
                                      Ticket.StatusesEnumToString(Ticket.STATUSES.REOPENDED),
@@ -80,17 +80,17 @@ do
         Ticket newTicket = null;
 
         // Create newTicket as requested type
-        if (selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Bug_Defect))
+        if (selectedTicketType == enumToStringTicketTypeWorkarround(TICKET_TYPES.Bug_Defect))
         {
             // newTicketType = typeof(BugDefect);
             newTicket = userCreateNewTicket<BugDefect>();
         }
-        else if (selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Enhancment))
+        else if (selectedTicketType == enumToStringTicketTypeWorkarround(TICKET_TYPES.Enhancment))
         {
             // newTicketType = typeof(Enhancement);
             newTicket = userCreateNewTicket<Enhancement>();
         }
-        else if (selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Task))
+        else if (selectedTicketType == enumToStringTicketTypeWorkarround(TICKET_TYPES.Task))
         {
             // newTicketType = typeof(Task);
             newTicket = userCreateNewTicket<Task>();
@@ -104,7 +104,7 @@ do
         bool wasDuplicatSummary = false;
 
         // Store newTicket to respective file
-        if (selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Bug_Defect))
+        if (selectedTicketType == enumToStringTicketTypeWorkarround(TICKET_TYPES.Bug_Defect))
         {
             if (ticketFileBugDefects.isUniqueSummary(newTicket.Summary))
             {
@@ -115,7 +115,7 @@ do
                 wasDuplicatSummary = true;
             }
         }
-        else if (selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Enhancment))
+        else if (selectedTicketType == enumToStringTicketTypeWorkarround(TICKET_TYPES.Enhancment))
         {
             if (ticketFileEnhancements.isUniqueSummary(newTicket.Summary))
             {
@@ -126,7 +126,7 @@ do
                 wasDuplicatSummary = true;
             }
         }
-        else if (selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Task))
+        else if (selectedTicketType == enumToStringTicketTypeWorkarround(TICKET_TYPES.Task))
         {
             if (ticketFileEnhancements.isUniqueSummary(newTicket.Summary))
             {
@@ -160,33 +160,58 @@ do
 
         string filterSearchString = ""; //TODO: Optimize filtering
 
-        string choosenFilterOptions = UserInteractions.OptionsSelector(FILTER_MENU_OPTIONS_IN_ORDER);
 
         //TODO: Add statuses & priorities
+        string choosenFilterOption;
+        do{
+            Console.WriteLine("\n~<:{[ Current Filter Settings ]}:>~\n");
+            
+            // filterAllowTypes.ToList().Aggregate((current, next) => $"{enumToStringTicketTypeWorkArround(current)}{enumToStringTicketTypeWorkArround(next)}");
+            string filterAllowTypesAsStr = "";
+            foreach(TICKET_TYPES allowType in filterAllowTypes){
+                filterAllowTypesAsStr = $"{filterAllowTypesAsStr}, {enumToStringTicketTypeWorkarround(allowType)}";
+            }
+            if(filterAllowTypesAsStr.Length > 2){
+                filterAllowTypesAsStr = filterAllowTypesAsStr.Substring(2);
+            }
 
-        if(choosenFilterOptions == enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Type)){
-            string[] choosenTypes = UserInteractions.RepeatingOptionsSelector(TICKET_TYPES_IN_ORDER);
+            Console.WriteLine($"   Types:        {filterAllowTypesAsStr}");
+            Console.WriteLine($"   Sumary Words: {filterSearchString}");
 
-            filterAllowTypes = new TICKET_TYPES[choosenTypes.Length];
-            for(int i = 0; i < choosenTypes.Length; i++){
-                filterAllowTypes[i] = stringToEnumTicketTypeWorkArround(choosenTypes[i]);
+            choosenFilterOption = UserInteractions.OptionsSelector(FILTER_MENU_OPTIONS_IN_ORDER);
+
+
+            if(choosenFilterOption == enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Type)){
+                string[] choosenTypes = UserInteractions.RepeatingOptionsSelector(TICKET_TYPES_IN_ORDER);
+
+                filterAllowTypes = new TICKET_TYPES[choosenTypes.Length];
+                for(int i = 0; i < choosenTypes.Length; i++){
+                    filterAllowTypes[i] = stringToEnumTicketTypeWorkArround(choosenTypes[i]);
+                }
+            }
+        }while(choosenFilterOption != enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Run_Filter));
+        // Run filter, TODO: Make more efficent, only adds, no removes
+        List<Ticket> filterRemainingTickets = new List<Ticket>();
+        // Filter by type - (add)
+        if(filterAllowTypes.Contains(TICKET_TYPES.Bug_Defect)){
+            filterRemainingTickets.AddRange(ticketFileBugDefects.Tickets);
+        }
+        if(filterAllowTypes.Contains(TICKET_TYPES.Enhancment)){
+            filterRemainingTickets.AddRange(ticketFileEnhancements.Tickets);
+        }
+        if(filterAllowTypes.Contains(TICKET_TYPES.Task)){
+            filterRemainingTickets.AddRange(ticketFileTasks.Tickets);
+        }
+        // Filter by summary - (remove)
+        foreach(Ticket ticket in filterRemainingTickets){
+            if(!ticket.Summary.Contains(filterSearchString)){//TODO: Turn into list checking
+               filterRemainingTickets.Remove(ticket);
+            }else{
             }
         }
 
+        UserInteractions.PrintTicketList(filterRemainingTickets);
         
-        List<Ticket> filterRemainingTickets = new List<Ticket>();
-        filterRemainingTickets.AddRange(ticketFileBugDefects.Tickets);
-
-
-        // Run filter and get results
-        // TODO: Combine all into one list
-
-
-
-
-        // FILTER_MENU_OPTIONS_IN_ORDER
-        
-        string selectedTicketType = UserInteractions.OptionsSelector(TICKET_TYPES_IN_ORDER);
     }
     else
     {
@@ -326,7 +351,7 @@ string enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS filterMenuEnum)
     };
 }
 
-string enumToStringTicketTypeWorkArround(TICKET_TYPES ticketTypeEnum)
+string enumToStringTicketTypeWorkarround(TICKET_TYPES ticketTypeEnum)
 {
     return ticketTypeEnum switch
     {
