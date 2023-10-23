@@ -5,9 +5,11 @@ using NLog;
 NLog.Logger logger = UserInteractions.getLogger();
 logger.Info("Main program is running and log mager is started, program is running on a " + (UserInteractions.IS_UNIX ? "" : "non-") + "unix-based device.\n");
 
-const string ticketsPath = "Tickets.csv";
-const string enhancementsPath = "Enhancements.csv";
-const string tasksPath = "Tasks.csv";
+
+const string databaseDirectory = "database/";
+const string ticketsPath = $"{databaseDirectory}Tickets.csv";
+const string enhancementsPath = $"{databaseDirectory}Enhancements.csv";
+const string tasksPath = $"{databaseDirectory}Tasks.csv";
 
 // Scrub files
 string bugDefectScrubbedFile = FileScrubber<BugDefect>.ScrubTickets(ticketsPath, logger, Ticket.DELIMETER_1, Ticket.DELIMETER_2);
@@ -73,16 +75,23 @@ do
         Ticket newTicket = null;
 
         // Create newTicket as requested type
-        if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Bug_Defect)){
+        if (selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Bug_Defect))
+        {
             // newTicketType = typeof(BugDefect);
             newTicket = userCreateNewTicket<BugDefect>();
-        }else if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Enhancment)){
+        }
+        else if (selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Enhancment))
+        {
             // newTicketType = typeof(Enhancement);
             newTicket = userCreateNewTicket<Enhancement>();
-        }else if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Task)){
+        }
+        else if (selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Task))
+        {
             // newTicketType = typeof(Task);
             newTicket = userCreateNewTicket<Task>();
-        }else{
+        }
+        else
+        {
             logger.Fatal("Somehow a ticket type was slected that did not fall under the the existing commands, this should never have been triggered. Improper ticket type is getting through");
         }
 
@@ -90,36 +99,52 @@ do
         bool wasDuplicatSummary = false;
 
         // Store newTicket to respective file
-        if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Bug_Defect)){
-            if(ticketFileBugDefects.isUniqueSummary(newTicket.Summary)){
+        if (selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Bug_Defect))
+        {
+            if (ticketFileBugDefects.isUniqueSummary(newTicket.Summary))
+            {
                 savedSucuessfully = ticketFileBugDefects.AddTicket(newTicket as BugDefect);
-            }else{
+            }
+            else
+            {
                 wasDuplicatSummary = true;
             }
-        }else if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Enhancment)){
-            if(ticketFileEnhancements.isUniqueSummary(newTicket.Summary)){
+        }
+        else if (selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Enhancment))
+        {
+            if (ticketFileEnhancements.isUniqueSummary(newTicket.Summary))
+            {
                 savedSucuessfully = ticketFileEnhancements.AddTicket(newTicket as Enhancement);
-            }else{
+            }
+            else
+            {
                 wasDuplicatSummary = true;
             }
-        }else if(selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Task)){
-            if(ticketFileEnhancements.isUniqueSummary(newTicket.Summary)){
+        }
+        else if (selectedTicketType == enumToStringTicketTypeWorkArround(TICKET_TYPES.Task))
+        {
+            if (ticketFileEnhancements.isUniqueSummary(newTicket.Summary))
+            {
                 savedSucuessfully = ticketFileTasks.AddTicket(newTicket as Task);
-            }else{
+            }
+            else
+            {
                 wasDuplicatSummary = true;
             }
         }
 
 
-        if(savedSucuessfully && newTicket != null)
+        if (savedSucuessfully && newTicket != null)
         {
             //Inform user that ticket was created and added    
             Console.WriteLine($"Your ticket with the summary of \"{newTicket.Summary}\" was successfully added to the records.");
         }
-        else if(wasDuplicatSummary)
+        else if (wasDuplicatSummary)
         {
             logger.Warn($"Duplicate ticket record summary on ticket \"{newTicket.Summary}\" with id \"{newTicket.TicketId}\". Not adding to records.");
-        }else{
+        }
+        else
+        {
             logger.Warn("Was unable to save your record.");
         }
     }
@@ -131,7 +156,8 @@ do
 } while (true);
 
 
-T userCreateNewTicket<T>() where T : Ticket, new(){
+T userCreateNewTicket<T>() where T : Ticket, new()
+{
     // Required by all
 
     string ticketSummary = UserInteractions.UserCreatedStringObtainer("Please enter the summary of the new ticket", 5, false, false);
@@ -139,12 +165,13 @@ T userCreateNewTicket<T>() where T : Ticket, new(){
     Ticket.PRIORITIES ticketPriority = Ticket.GetEnumPriorityFromString(UserInteractions.OptionsSelector(TICKET_PRIORITIES_IN_ORDER));
     string ticketSubmitter = UserInteractions.UserCreatedStringObtainer("Please enter the name of this ticket's submitter", 1, true, false);
     string ticketAssigned = UserInteractions.UserCreatedStringObtainer("Enter the person assigned to the ticket", 1, true, false);
-    List<string> ticketWatching = new List<string>{ UserInteractions.UserCreatedStringObtainer("Enter the name of a person watching the ticket", 1, true, false)};
+    List<string> ticketWatching = new List<string> { UserInteractions.UserCreatedStringObtainer("Enter the name of a person watching the ticket", 1, true, false) };
 
 
-    if(typeof(T) == typeof(BugDefect))//TODO: Move to inside Ticket.cs so generics can be used without check
+    if (typeof(T) == typeof(BugDefect))//TODO: Move to inside Ticket.cs so generics can be used without check
     {
-        BugDefect userCreatedTicket = new BugDefect{
+        BugDefect userCreatedTicket = new BugDefect
+        {
             Summary = ticketSummary,
             Status = ticketStatus,
             Priority = ticketPriority,
@@ -156,7 +183,7 @@ T userCreateNewTicket<T>() where T : Ticket, new(){
         do
         {
             selectedWatchers.Add(UserInteractions.UserCreatedStringObtainer("Enter the name of another person watching the ticket or leave blank to stop adding watchers", 0, false, true));
-        }while (selectedWatchers.Last().Length != 0);
+        } while (selectedWatchers.Last().Length != 0);
         selectedWatchers.RemoveAt(selectedWatchers.Count() - 1);
         userCreatedTicket.Watching = selectedWatchers;
 
@@ -164,9 +191,10 @@ T userCreateNewTicket<T>() where T : Ticket, new(){
 
         return userCreatedTicket as T;
     }
-    else if(typeof(T) == typeof(Enhancement))
+    else if (typeof(T) == typeof(Enhancement))
     {
-        Enhancement userCreatedTicket = new Enhancement{
+        Enhancement userCreatedTicket = new Enhancement
+        {
             Summary = ticketSummary,
             Status = ticketStatus,
             Priority = ticketPriority,
@@ -178,20 +206,21 @@ T userCreateNewTicket<T>() where T : Ticket, new(){
         do
         {
             selectedWatchers.Add(UserInteractions.UserCreatedStringObtainer("Enter the name of another person watching the ticket or leave blank to stop adding watchers", 0, false, true));
-        }while (selectedWatchers.Last().Length != 0);
+        } while (selectedWatchers.Last().Length != 0);
         selectedWatchers.RemoveAt(selectedWatchers.Count() - 1);
         userCreatedTicket.Watching = selectedWatchers;
 
         userCreatedTicket.Software = UserInteractions.UserCreatedStringObtainer("Please enter the software of the enhancement ticket", 1, false, false);
-        userCreatedTicket.Cost = UserInteractions.UserCreatedDoubleObtainer("Please enter the cost of the enhancement ticket", 0, 1_000_000_000,false,0,2);
+        userCreatedTicket.Cost = UserInteractions.UserCreatedDoubleObtainer($"Please enter the cost of the enhancement ticket (in {Enhancement.MONITORY_STARTER_ICON})", 0, 1_000_000_000, false, 0, 2);
         userCreatedTicket.Reason = UserInteractions.UserCreatedStringObtainer("Please enter the reason of the enhancement ticket", 5, false, false);
         userCreatedTicket.Estimate = UserInteractions.UserCreatedStringObtainer("Please enter the estimate of the enhancement ticket", 1, false, false);
 
         return userCreatedTicket as T;
     }
-    else if(typeof(T) == typeof(Task))
+    else if (typeof(T) == typeof(Task))
     {
-        Task userCreatedTicket = new Task{
+        Task userCreatedTicket = new Task
+        {
             Summary = ticketSummary,
             Status = ticketStatus,
             Priority = ticketPriority,
@@ -203,7 +232,7 @@ T userCreateNewTicket<T>() where T : Ticket, new(){
         do
         {
             selectedWatchers.Add(UserInteractions.UserCreatedStringObtainer("Enter the name of another person watching the ticket or leave blank to stop adding watchers", 0, false, true));
-        }while (selectedWatchers.Last().Length != 0);
+        } while (selectedWatchers.Last().Length != 0);
         selectedWatchers.RemoveAt(selectedWatchers.Count() - 1);
         userCreatedTicket.Watching = selectedWatchers;
 
@@ -217,11 +246,12 @@ T userCreateNewTicket<T>() where T : Ticket, new(){
         return userCreatedTicket as T;
     }
 
-    return new T{
+    return new T
+    {
         TicketId = 0,
         Summary = "",
-        Status = Ticket.STATUSES.NO_STATUSES_LISTED,
-        Priority = Ticket.PRIORITIES.NO_PRIORITIES_LISTED,
+        Status = Ticket.STATUSES.NO_STATUS_LISTED,
+        Priority = Ticket.PRIORITIES.NO_PRIORITY_LISTED,
         Submitter = "",
         Assigned = "",
         Watching = new List<string>()

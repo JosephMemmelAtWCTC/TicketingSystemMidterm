@@ -150,7 +150,6 @@ public class TicketFile<T> where T : Ticket, new()
             string summary = ticket.Summary.IndexOf(delimeter2) != -1 || ticket.Summary.IndexOf("\"") != -1 ? $"\"{ticket.Summary}\"" : ticket.Summary;
             StreamWriter sw = new StreamWriter(filePath, true);
             // write ticket data to file
-            //TODO: NEED TO WRITE LINE
 
             string lineToCore = $"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{Ticket.StatusesEnumToString(ticket.Status)}{delimeter1}{Ticket.PrioritiesEnumToString(ticket.Priority)}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{string.Join(delimeter2,ticket.Watching)}";
             string additional = "";

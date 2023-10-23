@@ -8,7 +8,6 @@ public static class FileScrubber<T> where T: Ticket, new()
 
     public static string ScrubTickets(string readFile, NLog.Logger logger, string delimeter1, string delimeter2)
     {
-        //TODO: !!! Put back try catch
         try
         {
             // determine name of writeFile
@@ -88,7 +87,7 @@ public static class FileScrubber<T> where T: Ticket, new()
                         string storeBasicLine = $"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{Ticket.StatusesEnumToString(ticket.Status)}{delimeter1}{Ticket.PrioritiesEnumToString(ticket.Priority)}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{ticket.Watching.Aggregate((current, next) => $"{current}{delimeter2}{next}")}";
                         string additionalParts = "";
 
-//TODO: !!!!! Make it so that parenthesies check is always made in any possible user string value +/ temp remove those from text when inputted
+//TODO: Make it so that quotation mark check is always made in any possible user string value +/ temp remove those from text when inputted
 
                         if(typeof(T) == typeof(BugDefect)){
                             ticket = (BugDefect)ticket;
