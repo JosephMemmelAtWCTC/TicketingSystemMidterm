@@ -153,19 +153,41 @@ do
             logger.Warn("Was unable to save your record.");
         }
     }
-    // else if (menuCheckCommand == enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.View_Tickets_Filter)){
-    //     TICKET_TYPES[] filterAllowTypes = TICKET_TYPES_IN_ORDER;
-    //     // Default, allow all
-    //     filterAllowTypes = 
+    else if(true && menuCheckCommand == enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.View_Tickets_Filter)){
+        // Default, allow all
 
-    //     string filterSearchString = ""; //TODO: Optimize filtering
+        TICKET_TYPES[] filterAllowTypes = (TICKET_TYPES[])Enum.GetValues(typeof(TICKET_TYPES)); //Get all enums of Ticket types
 
-    //     // FILTER_MENU_OPTIONS 
+        string filterSearchString = ""; //TODO: Optimize filtering
 
-    //     // FILTER_MENU_OPTIONS_IN_ORDER
+        string choosenFilterOptions = UserInteractions.OptionsSelector(FILTER_MENU_OPTIONS_IN_ORDER);
+
+        //TODO: Add statuses & priorities
+
+        if(choosenFilterOptions == enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Type)){
+            string[] choosenTypes = UserInteractions.RepeatingOptionsSelector(TICKET_TYPES_IN_ORDER);
+
+            filterAllowTypes = new TICKET_TYPES[choosenTypes.Length];
+            for(int i = 0; i < choosenTypes.Length; i++){
+                filterAllowTypes[i] = stringToEnumTicketTypeWorkArround(choosenTypes[i]);
+            }
+        }
+
         
-    //     string selectedTicketType = UserInteractions.OptionsSelector(TICKET_TYPES_IN_ORDER);
-    // }
+        List<Ticket> filterRemainingTickets = new List<Ticket>();
+        filterRemainingTickets.AddRange(ticketFileBugDefects.Tickets);
+
+
+        // Run filter and get results
+        // TODO: Combine all into one list
+
+
+
+
+        // FILTER_MENU_OPTIONS_IN_ORDER
+        
+        string selectedTicketType = UserInteractions.OptionsSelector(TICKET_TYPES_IN_ORDER);
+    }
     else
     {
         logger.Fatal("Somehow menuCheckCommand was slected that did not fall under the the existing commands, this should never have been triggered. Improper menuCheckCommand is getting through");
@@ -313,6 +335,18 @@ string enumToStringTicketTypeWorkArround(TICKET_TYPES ticketTypeEnum)
         TICKET_TYPES.Task => "Task",
         _ => "ERROR_TICKET_TYPE_DOES_NOT_EXIST"
     };
+}
+
+TICKET_TYPES stringToEnumTicketTypeWorkArround(string ticketTypeStr)
+{
+    return ticketTypeStr switch
+    {
+        "Bug/Defect"  => TICKET_TYPES.Bug_Defect,
+        "Enhancement" => TICKET_TYPES.Enhancment,
+        "Task" => TICKET_TYPES.Task,
+        _ => TICKET_TYPES.Bug_Defect //Default to orignal Bug/Defect when not found (should never happen if done correctly)
+    };
+    //TODO: Log error
 }
 
 public enum MAIN_MENU_OPTIONS

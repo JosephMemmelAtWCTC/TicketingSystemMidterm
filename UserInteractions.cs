@@ -166,111 +166,101 @@ public sealed class UserInteractions{ //Sealed to prevent inheritance, set up as
     }
 
     public static double userCreatedDoubleObtainer(string message, double minValue, double maxValue, bool showRange, string defaultValue, int places){//Use -1 for no places
-    string userInputRaw = null;
-    double userChoosenDouble;
-    double defaultAsDouble = 0;
+        string userInputRaw = null;
+        double userChoosenDouble;
+        double defaultAsDouble = 0;
 
-    if(defaultValue != "" && !double.TryParse(defaultValue, out defaultAsDouble)){
-        logger.Error($"Could not use default value of \"{defaultValue}\" as a double. Argument exception error!");
-        defaultValue = "";
+        if(defaultValue != "" && !double.TryParse(defaultValue, out defaultAsDouble)){
+            logger.Error($"Could not use default value of \"{defaultValue}\" as a double. Argument exception error!");
+            defaultValue = "";
+        }
+        do{
+            Console.Write($"\n{message}{(showRange? $" ({minValue} to {maxValue})" : "")}{(defaultValue==""? "" : $" or leave blank to use \"{defaultValue}\"")}: ");
+            userInputRaw = Console.ReadLine().Trim();
+            if (double.TryParse(userInputRaw, out userChoosenDouble) || userInputRaw.Length == 0) //Duplicate .Length == 0 checking to have code in the same location
+            {
+                if(defaultValue != null && userInputRaw.Length == 0) //Was blank and allowed
+                {
+                    userChoosenDouble = defaultAsDouble;
+                }
+                else if(defaultValue == null && userInputRaw.Length == 0)
+                {
+                    logger.Error("Your choosen number was empty, please try again.");
+                    userInputRaw = null; //Was blank and not allowed
+                }
+                else if(userChoosenDouble < minValue)
+                {
+                    string formattedMinValue, formattedMaxValue;
+                    if(places == -1){
+                        formattedMinValue = minValue.ToString($"N{places}");
+                        formattedMaxValue = maxValue.ToString($"N{places}");                    
+                    }else{
+                        formattedMinValue = minValue.ToString();
+                        formattedMaxValue = maxValue.ToString();                    
+                    }
+
+                    logger.Error($"Your choosen number choice was below \"{minValue}\", the range is ({formattedMinValue} to {formattedMaxValue}), please try again.");
+                    userInputRaw = null; //Under min
+                }
+                else if(userChoosenDouble > maxValue)
+                {
+                    logger.Error($"Your choosen number choice was above \"{maxValue}\", the range is ({minValue} to {maxValue}), please try again.");
+                    userInputRaw = null; //Above max
+                }
+                else if(places != -1) //No problems so far, check for placeValues
+                {
+                    int decimalPointIndex = userInputRaw.ToString().LastIndexOf("."); //Uses last to work backwards
+                    //Decimal point was found and had too many
+                    if(decimalPointIndex != -1 && userInputRaw.Length-1 - decimalPointIndex > places){
+                        logger.Error($"Your choosen number had too many decimal place values, can only have max of {places} decimal places, please try again.");
+                        userInputRaw = null;
+                    }
+                }
+            }
+            else
+            {
+                //User response was not a double
+                logger.Error("Your choosen id choice was not a possible number, please try again.");
+                userInputRaw = null; //Was not an integer
+            }
+        }while(userInputRaw == null);
+        return userChoosenDouble;
     }
-    do{
-        Console.Write($"\n{message}{(showRange? $" ({minValue} to {maxValue})" : "")}{(defaultValue==""? "" : $" or leave blank to use \"{defaultValue}\"")}: ");
-        userInputRaw = Console.ReadLine().Trim();
-        if (double.TryParse(userInputRaw, out userChoosenDouble) || userInputRaw.Length == 0) //Duplicate .Length == 0 checking to have code in the same location
-        {
-            if(defaultValue != null && userInputRaw.Length == 0) //Was blank and allowed
-            {
-                userChoosenDouble = defaultAsDouble;
-            }
-            else if(defaultValue == null && userInputRaw.Length == 0)
-            {
-                logger.Error("Your choosen number was empty, please try again.");
-                userInputRaw = null; //Was blank and not allowed
-            }
-            else if(userChoosenDouble < minValue)
-            {
-                string formattedMinValue, formattedMaxValue;
-                if(places == -1){
-                    formattedMinValue = minValue.ToString($"N{places}");
-                    formattedMaxValue = maxValue.ToString($"N{places}");                    
-                }else{
-                    formattedMinValue = minValue.ToString();
-                    formattedMaxValue = maxValue.ToString();                    
-                }
 
-                logger.Error($"Your choosen number choice was below \"{minValue}\", the range is ({formattedMinValue} to {formattedMaxValue}), please try again.");
-                userInputRaw = null; //Under min
-            }
-            else if(userChoosenDouble > maxValue)
-            {
-                logger.Error($"Your choosen number choice was above \"{maxValue}\", the range is ({minValue} to {maxValue}), please try again.");
-                userInputRaw = null; //Above max
-            }
-            else if(places != -1) //No problems so far, check for placeValues
-            {
-                int decimalPointIndex = userInputRaw.ToString().LastIndexOf("."); //Uses last to work backwards
-                //Decimal point was found and had too many
-                if(decimalPointIndex != -1 && userInputRaw.Length-1 - decimalPointIndex > places){
-                    logger.Error($"Your choosen number had too many decimal place values, can only have max of {places} decimal places, please try again.");
-                    userInputRaw = null;
-                }
-            }
+    public static string[] RepeatingOptionsSelector(string[] optionsToPickFrom){
+        string stopOption = "Done picking";
+        string[] optionsToPickFromWithStop = new string[optionsToPickFrom.Length+1];
+        for(int i = 0; i < optionsToPickFrom.Length; i++){
+            optionsToPickFromWithStop[i] = optionsToPickFrom[i];
         }
-        else
-        {
-            //User response was not a double
-            logger.Error("Your choosen id choice was not a possible number, please try again.");
-            userInputRaw = null; //Was not an integer
-        }
-    }while(userInputRaw == null);
-    return userChoosenDouble;
-}
+        optionsToPickFromWithStop[optionsToPickFromWithStop.Length-1] = stopOption;
 
-    // public static List<Ticket.GENRES> RepeatingGenreOptionsSelector(bool exclusivity, bool includeErrorEnum){
-    //     string[] remainingGenresAsStrings = new string[ALL_MEDIA_GENRES.Length + (includeErrorEnum? 1 : 0)]; // -1 to remove error enum but then +1 for the exit option
-
-    //     List<Ticket.GENRES> selectedGenres = new List<Ticket.GENRES>(){};
+        List<string> selectedOptions = new List<string>(){};
         
-    //     string genreSelectedStr = "";
+        string optionSelectedStr = "";
 
-    //     // Build remainingGenresAsStrings
-    //     for (int i = 0; i < ALL_MEDIA_GENRES.Length; i++)
-    //     {
-    //         remainingGenresAsStrings[i] = Ticket.GenresEnumToString(ALL_MEDIA_GENRES[i]);
-    //     }
-    //     remainingGenresAsStrings[remainingGenresAsStrings.Length - 1] = "Done entering genres";
+        do{
+            optionSelectedStr = OptionsSelector(optionsToPickFromWithStop);
+            for(int i = 0; i < optionsToPickFromWithStop.Length; i++)
+            {
+                if(optionSelectedStr == optionsToPickFromWithStop[i])
+                {
+                    if(optionSelectedStr == stopOption)//optionsToPickFromWithStop[optionsToPickFromWithStop.Length - 1])
+                    { //Last item was added just above as not an add option, but to stop
+                        optionSelectedStr = null; //Inform that do-while is over
+                    }
+                    else
+                    {
+                        selectedOptions.Add(optionSelectedStr);
+                    }
+                    optionsToPickFromWithStop[i] = null; //Blank options are removed from options selector
+                    break;
+                }
+            }
+        } while (optionSelectedStr != null); //Last index is done option
 
-    //     do{
-    //         genreSelectedStr = OptionsSelector(remainingGenresAsStrings);
-    //         for (int i = 0; i < remainingGenresAsStrings.Length; i++)
-    //         {
-    //             if (genreSelectedStr == remainingGenresAsStrings[i])
-    //             {
-    //                 if (genreSelectedStr == remainingGenresAsStrings[remainingGenresAsStrings.Length - 1])
-    //                 { //Last item was added just above as not an enum, but to exit
-    //                     genreSelectedStr = null; //Inform that do-while is over
-    //                 }
-    //                 else if ( exclusivity && genreSelectedStr == Ticket.GenresEnumToString(Ticket.GENRES.NO_GENRES_LISTED))
-    //                 { //Exit early that none are listed
-    //                     selectedGenres.Add(Ticket.GENRES.NO_GENRES_LISTED);//Should be the only element
-    //                     genreSelectedStr = null; //Inform that do-while is over
-    //                 }
-    //                 else
-    //                 {
-    //                     selectedGenres.Add(Ticket.GetGenreEnumFromString(genreSelectedStr));
-    //                 }
-    //                 remainingGenresAsStrings[i] = null; //Blank options are removed from options selector
-    //                 break;
-    //             }
-    //         }
-    //         if(!exclusivity){
-    //             remainingGenresAsStrings[remainingGenresAsStrings.Length - 2] = null; //Remove no genres listed on the first round if exclusive
-    //         }
-    //     } while (genreSelectedStr != null); //Last index is done option
-
-    //     return selectedGenres;
-    // }
+        return selectedOptions.ToArray();
+    }
 
 
     // public void PrintMediaList(List<Media> allMedia){
