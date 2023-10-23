@@ -30,8 +30,8 @@ string[] MAIN_MENU_OPTIONS_IN_ORDER = { enumToStringMainMenuWorkarround(MAIN_MEN
                                         enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.Add_Ticket),
                                         enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.Exit)};
 
-string[] FILTER_MENU_OPTIONS_IN_ORDER = { enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Type),
-                                          enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Summary),
+string[] FILTER_MENU_OPTIONS_IN_ORDER = { enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Types),
+                                          enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Phrases),
                                           enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Run_Filter)};
 
 
@@ -153,65 +153,132 @@ do
             logger.Warn("Was unable to save your record.");
         }
     }
-    else if(true && menuCheckCommand == enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.View_Tickets_Filter)){
+    else if (true && menuCheckCommand == enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.View_Tickets_Filter))
+    {
         // Default, allow all
 
         TICKET_TYPES[] filterAllowTypes = (TICKET_TYPES[])Enum.GetValues(typeof(TICKET_TYPES)); //Get all enums of Ticket types
 
-        string filterSearchString = ""; //TODO: Optimize filtering
+        List<string> filterSearchStrings = new List<string>() {"A","B","C","D" }; //TODO: Optimize filtering
 
 
         //TODO: Add statuses & priorities
         string choosenFilterOption;
-        do{
+        do
+        {
             Console.WriteLine("\n~<:{[ Current Filter Settings ]}:>~\n");
-            
+
             // filterAllowTypes.ToList().Aggregate((current, next) => $"{enumToStringTicketTypeWorkArround(current)}{enumToStringTicketTypeWorkArround(next)}");
             string filterAllowTypesAsStr = "";
-            foreach(TICKET_TYPES allowType in filterAllowTypes){
+            foreach (TICKET_TYPES allowType in filterAllowTypes)
+            {
                 filterAllowTypesAsStr = $"{filterAllowTypesAsStr}, {enumToStringTicketTypeWorkarround(allowType)}";
             }
-            if(filterAllowTypesAsStr.Length > 2){
+            if (filterAllowTypesAsStr.Length > 2)
+            {
                 filterAllowTypesAsStr = filterAllowTypesAsStr.Substring(2);
             }
 
-            Console.WriteLine($"   Types:        {filterAllowTypesAsStr}");
-            Console.WriteLine($"   Sumary Words: {filterSearchString}");
+            string indentStr = new string[3].Aggregate((c, n) => $"{c} "); //Blank space to make it act as a single character, needs to be 1 more then desired ammount
+            string phraseIndentStr = new string[10].Aggregate((c, n) => $"{c} "); //Blank space to make it act as a single character
+
+            string builtUpPhrases = (filterSearchStrings.Count == 0)? "" : filterSearchStrings.Aggregate((current, next) => $"{current}\n{indentStr}{phraseIndentStr}{next}");
+
+            Console.WriteLine($"{indentStr}Types:   {filterAllowTypesAsStr}");
+            Console.WriteLine($"{indentStr}Phrases: {builtUpPhrases}");
 
             choosenFilterOption = UserInteractions.OptionsSelector(FILTER_MENU_OPTIONS_IN_ORDER);
 
 
-            if(choosenFilterOption == enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Type)){
+            if (choosenFilterOption == enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Types))
+            {
                 string[] choosenTypes = UserInteractions.RepeatingOptionsSelector(TICKET_TYPES_IN_ORDER);
 
                 filterAllowTypes = new TICKET_TYPES[choosenTypes.Length];
-                for(int i = 0; i < choosenTypes.Length; i++){
+                for (int i = 0; i < choosenTypes.Length; i++)
+                {
                     filterAllowTypes[i] = stringToEnumTicketTypeWorkArround(choosenTypes[i]);
                 }
             }
-        }while(choosenFilterOption != enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Run_Filter));
+            else if (choosenFilterOption == enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Phrases))
+            {
+                string[] keywordOptions = new string[] { "Remove phrases", "Add phrases", "Exit Phraes" };
+
+                string selectedOption;
+                do{
+                    selectedOption = UserInteractions.OptionsSelector(keywordOptions);
+
+                    if(selectedOption == keywordOptions[0]){
+                        Console.WriteLine("Select the following to remove");
+                        string[] leftAfterRemovel = UserInteractions.RepeatingOptionsSelector(filterSearchStrings.ToArray());
+                        
+                        filterSearchStrings = new List<string>() { }; //Reset options
+                        foreach(string phrase in leftAfterRemovel)
+                        {
+                            filterSearchStrings.Add(phrase);
+                        }
+                    }
+                }while(selectedOption != keywordOptions[keywordOptions.Length-1]);
+
+                Console.WriteLine($"Current search phrases: {filterSearchStrings}");
+
+
+                
+
+
+            }
+        } while (choosenFilterOption != enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Run_Filter));
         // Run filter, TODO: Make more efficent, only adds, no removes
         List<Ticket> filterRemainingTickets = new List<Ticket>();
         // Filter by type - (add)
-        if(filterAllowTypes.Contains(TICKET_TYPES.Bug_Defect)){
+        if (filterAllowTypes.Contains(TICKET_TYPES.Bug_Defect))
+        {
             filterRemainingTickets.AddRange(ticketFileBugDefects.Tickets);
         }
-        if(filterAllowTypes.Contains(TICKET_TYPES.Enhancment)){
+        if (filterAllowTypes.Contains(TICKET_TYPES.Enhancment))
+        {
             filterRemainingTickets.AddRange(ticketFileEnhancements.Tickets);
         }
-        if(filterAllowTypes.Contains(TICKET_TYPES.Task)){
+        if (filterAllowTypes.Contains(TICKET_TYPES.Task))
+        {
             filterRemainingTickets.AddRange(ticketFileTasks.Tickets);
         }
         // Filter by summary - (remove)
-        foreach(Ticket ticket in filterRemainingTickets){
-            if(!ticket.Summary.Contains(filterSearchString)){//TODO: Turn into list checking
-               filterRemainingTickets.Remove(ticket);
-            }else{
+        foreach (Ticket ticket in filterRemainingTickets)
+        {
+            bool didNotFindAPhrase = true;
+            foreach (string phrase in filterSearchStrings)
+            {
+                if (ticket.Summary.Contains(phrase, StringComparison.OrdinalIgnoreCase))
+                {
+                    didNotFindAPhrase = false;
+                }
+                else if (ticket.Assigned.Contains(phrase, StringComparison.OrdinalIgnoreCase))
+                {
+                    didNotFindAPhrase = false;
+                }
+                else if (ticket.Submitter.Contains(phrase, StringComparison.OrdinalIgnoreCase))
+                {
+                    didNotFindAPhrase = false;
+                }
+                else if (ticket.Assigned.Contains(phrase, StringComparison.OrdinalIgnoreCase))
+                {
+                    didNotFindAPhrase = false;
+                }
+                else if (ticket.ContainsInExtras(phrase, StringComparison.OrdinalIgnoreCase))
+                {
+                    didNotFindAPhrase = false;
+                }
+                if (!didNotFindAPhrase) { break; }
+            }
+            if (didNotFindAPhrase)
+            {
+                filterRemainingTickets.Remove(ticket);
             }
         }
 
         UserInteractions.PrintTicketList(filterRemainingTickets);
-        
+
     }
     else
     {
@@ -333,7 +400,7 @@ string enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS mainMenuEnum)
     return mainMenuEnum switch
     {
         MAIN_MENU_OPTIONS.Exit => "Quit program",
-        MAIN_MENU_OPTIONS.View_Tickets_No_Filter => $"View all tickets on file in order (display max ammount is {UserInteractions.PRINTOUT_RESULTS_MAX_TERMINAL_SPACE_HEIGHT/11:N0})",// Divide by 11 as 10 is the current max number of fields in a ticket and +1 for the empty spacing lines between
+        MAIN_MENU_OPTIONS.View_Tickets_No_Filter => $"View all tickets on file in order (display max ammount is {UserInteractions.PRINTOUT_RESULTS_MAX_TERMINAL_SPACE_HEIGHT / 11:N0})",// Divide by 11 as 10 is the current max number of fields in a ticket and +1 for the empty spacing lines between
         MAIN_MENU_OPTIONS.View_Tickets_Filter => "Filter tickets on file",
         MAIN_MENU_OPTIONS.Add_Ticket => "Add new ticket to file",
         _ => "ERROR_MAIN_MENU_OPTION_DOES_NOT_EXIST"
@@ -344,8 +411,8 @@ string enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS filterMenuEnum)
 {
     return filterMenuEnum switch
     {
-        FILTER_MENU_OPTIONS.Type => "Add filter tickets by type",
-        FILTER_MENU_OPTIONS.Summary => "Add filter tickets by summary",
+        FILTER_MENU_OPTIONS.Types => "Add filter tickets by type",
+        FILTER_MENU_OPTIONS.Phrases => "Modify filter tickets by phrase",
         FILTER_MENU_OPTIONS.Run_Filter => "Run the compleated filters",
         _ => "ERROR_FILTER_MENU_OPTION_DOES_NOT_EXIST"
     };
@@ -366,7 +433,7 @@ TICKET_TYPES stringToEnumTicketTypeWorkArround(string ticketTypeStr)
 {
     return ticketTypeStr switch
     {
-        "Bug/Defect"  => TICKET_TYPES.Bug_Defect,
+        "Bug/Defect" => TICKET_TYPES.Bug_Defect,
         "Enhancement" => TICKET_TYPES.Enhancment,
         "Task" => TICKET_TYPES.Task,
         _ => TICKET_TYPES.Bug_Defect //Default to orignal Bug/Defect when not found (should never happen if done correctly)
@@ -384,8 +451,8 @@ public enum MAIN_MENU_OPTIONS
 
 public enum FILTER_MENU_OPTIONS
 {
-    Type,
-    Summary,
+    Types,
+    Phrases,
     Run_Filter
 }
 

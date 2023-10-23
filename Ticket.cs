@@ -50,6 +50,11 @@ public abstract class Ticket//: IEquatable<Ticket>, IComparable<Ticket>
                $"Watching:  {string.Join(", ", Watching)}\n";
     }
 
+    public virtual bool ContainsInExtras(string phraseStr, StringComparison stringComparison)
+    {
+        return false;
+    }
+
     // PULL SORT HERE
 
     public static STATUSES GetEnumStatusFromString(string statuseStr)
@@ -120,6 +125,11 @@ public class BugDefect : Ticket
                $"Watching:  {string.Join(", ", Watching)}\n" +
                $"Severity:  {Severity}\n";
     }
+
+    public override bool ContainsInExtras(string phraseStr, StringComparison stringComparison)
+    {
+        return Severity.Contains(phraseStr, stringComparison);
+    }
 }
 
 public class Enhancement : Ticket
@@ -146,6 +156,14 @@ public class Enhancement : Ticket
                $"Reason:    {Reason}\n" +
                $"Estimate:  {Estimate}\n";
     }
+
+    public override bool ContainsInExtras(string phraseStr, StringComparison stringComparison)
+    {
+        return        Software.Contains(phraseStr, stringComparison)
+            || Cost.ToString().Contains(phraseStr, stringComparison)
+            ||          Reason.Contains(phraseStr, stringComparison)
+            ||        Estimate.Contains(phraseStr, stringComparison);
+    }
 }
 
 public class Task : Ticket
@@ -165,5 +183,11 @@ public class Task : Ticket
                $"Watching:    {string.Join(", ", Watching)}\n" +
                $"ProjectName: {ProjectName}\n" +
                $"DueDate:     {DueDate}\n";
+    }
+
+    public override bool ContainsInExtras(string phraseStr, StringComparison stringComparison)
+    {
+        return        ProjectName.Contains(phraseStr, stringComparison)
+            || DueDate.ToString().Contains(phraseStr, stringComparison);
     }
 }
