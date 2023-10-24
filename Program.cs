@@ -32,6 +32,8 @@ string[] MAIN_MENU_OPTIONS_IN_ORDER = { enumToStringMainMenuWorkarround(MAIN_MEN
 
 string[] FILTER_MENU_OPTIONS_IN_ORDER = { enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Types),
                                           enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Phrases),
+                                          enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Statuses),
+                                          enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Priorities),
                                           enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Run_Filter)};
 
 
@@ -161,6 +163,8 @@ do
 
         List<string> filterSearchStrings = new List<string>() { }; //TODO: Optimize filtering
 
+        Ticket.STATUSES[] filterAllowStatuses = (Ticket.STATUSES[])Enum.GetValues(typeof(Ticket.STATUSES)); //Get all enums of statuses
+        Ticket.PRIORITIES[] filterAllowPriorities = (Ticket.PRIORITIES[])Enum.GetValues(typeof(Ticket.PRIORITIES)); //Get all enums of priorities
 
         //TODO: Add statuses & priorities
         string choosenFilterOption;
@@ -170,6 +174,8 @@ do
 
             // filterAllowTypes.ToList().Aggregate((current, next) => $"{enumToStringTicketTypeWorkArround(current)}{enumToStringTicketTypeWorkArround(next)}");
             string filterAllowTypesAsStr = "";
+            string filterAllowStatusesAsStr = "";
+            string filterAllowPrioritiesAsStr = "";
             foreach (TICKET_TYPES allowType in filterAllowTypes)
             {
                 filterAllowTypesAsStr = $"{filterAllowTypesAsStr}, {enumToStringTicketTypeWorkarround(allowType)}";
@@ -179,13 +185,34 @@ do
                 filterAllowTypesAsStr = filterAllowTypesAsStr.Substring(2);
             }
 
+            foreach (Ticket.STATUSES allowStatus in filterAllowStatuses)
+            {
+                filterAllowStatusesAsStr = $"{filterAllowStatusesAsStr}, {Ticket.StatusesEnumToString(allowStatus)}";
+            }
+            if (filterAllowStatusesAsStr.Length > 2)
+            {
+                filterAllowStatusesAsStr = filterAllowStatusesAsStr.Substring(2);
+            }
+
+            foreach (Ticket.PRIORITIES allowPriority in filterAllowPriorities)
+            {
+                filterAllowPrioritiesAsStr = $"{filterAllowPrioritiesAsStr}, {Ticket.PrioritiesEnumToString(allowPriority)}";
+            }
+            if (filterAllowPrioritiesAsStr.Length > 2)
+            {
+                filterAllowPrioritiesAsStr = filterAllowPrioritiesAsStr.Substring(2);
+            }
+
             string indentStr = new string[3].Aggregate((c, n) => $"{c} "); //Blank space to make it act as a single character, needs to be 1 more then desired ammount
             string phraseIndentStr = new string[10].Aggregate((c, n) => $"{c} "); //Blank space to make it act as a single character
 
             string builtUpPhrases = (filterSearchStrings.Count == 0)? "" : filterSearchStrings.Aggregate((current, next) => $"{current}\n{indentStr}{phraseIndentStr}{next}");
 
-            Console.WriteLine($"{indentStr}Types:   {filterAllowTypesAsStr}");
-            Console.WriteLine($"{indentStr}Phrases: {builtUpPhrases}");
+            Console.WriteLine($"{indentStr}Types:      {filterAllowTypesAsStr}");
+            Console.WriteLine($"{indentStr}Statuses:   {filterAllowStatusesAsStr}");
+            Console.WriteLine($"{indentStr}Priorities: {filterAllowPrioritiesAsStr}");
+            Console.WriteLine($"{indentStr}Types:      {filterAllowTypesAsStr}");
+            Console.WriteLine($"{indentStr}Phrases:    {builtUpPhrases}");
 
             choosenFilterOption = UserInteractions.OptionsSelector(FILTER_MENU_OPTIONS_IN_ORDER);
 
@@ -234,6 +261,26 @@ do
                 Console.WriteLine($"Current search phrases: {filterSearchStrings.Aggregate((current,next) => $"{current},\"{next}\"")}");
 
             }
+            else if (choosenFilterOption == enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Statuses))
+            {
+                string[] choosenStatuses = UserInteractions.RepeatingOptionsSelector(TICKET_STATUSES_IN_ORDER);
+
+                filterAllowStatuses = new Ticket.STATUSES[choosenStatuses.Length];
+                for (int i = 0; i < choosenStatuses.Length; i++)
+                {
+                    filterAllowStatuses[i] = Ticket.GetEnumStatusFromString(choosenStatuses[i]);
+                }
+            }
+            else if (choosenFilterOption == enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Priorities))
+            {
+                string[] choosenPriorities = UserInteractions.RepeatingOptionsSelector(TICKET_STATUSES_IN_ORDER);
+
+                filterAllowStatuses = new Ticket.STATUSES[choosenPriorities.Length];
+                for (int i = 0; i < choosenPriorities.Length; i++)
+                {
+                    filterAllowPriorities[i] = Ticket.GetEnumPriorityFromString(choosenPriorities[i]);
+                }
+            }
         } while (choosenFilterOption != enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Run_Filter));
         // Run filter, TODO: Make more efficent, only adds, no removes
         List<Ticket> filterRemainingTickets = new List<Ticket>();
@@ -255,32 +302,51 @@ do
         {
             Ticket ticket = filterRemainingTickets[i];
 
-            bool didNotFindAPhrase = true;
-            foreach (string phrase in filterSearchStrings)
+            bool didNotFindAPhraseOrStatusPriority = true;
+
+            foreach (Ticket.STATUSES status in filterAllowStatuses)
             {
-                if (ticket.Summary.Contains(phrase, StringComparison.OrdinalIgnoreCase))
-                {
-                    didNotFindAPhrase = false;
+                if(ticket.Status == status){
+                    didNotFindAPhraseOrStatusPriority = false;
+                    break;
                 }
-                else if (ticket.Assigned.Contains(phrase, StringComparison.OrdinalIgnoreCase))
-                {
-                    didNotFindAPhrase = false;
-                }
-                else if (ticket.Submitter.Contains(phrase, StringComparison.OrdinalIgnoreCase))
-                {
-                    didNotFindAPhrase = false;
-                }
-                else if (ticket.Assigned.Contains(phrase, StringComparison.OrdinalIgnoreCase))
-                {
-                    didNotFindAPhrase = false;
-                }
-                else if (ticket.ContainsInExtras(phrase, StringComparison.OrdinalIgnoreCase))
-                {
-                    didNotFindAPhrase = false;
-                }
-                if (!didNotFindAPhrase) { break; }
             }
-            if(didNotFindAPhrase)
+            if(didNotFindAPhraseOrStatusPriority){
+                foreach (Ticket.PRIORITIES priority in filterAllowPriorities)
+                {
+                    if(ticket.Priority == priority){
+                        didNotFindAPhraseOrStatusPriority = false;
+                        break;
+                    }
+                }
+            }
+            if(didNotFindAPhraseOrStatusPriority){
+                foreach (string phrase in filterSearchStrings)
+                {
+                    if (ticket.Summary.Contains(phrase, StringComparison.OrdinalIgnoreCase))
+                    {
+                        didNotFindAPhraseOrStatusPriority = false;
+                    }
+                    else if (ticket.Assigned.Contains(phrase, StringComparison.OrdinalIgnoreCase))
+                    {
+                        didNotFindAPhraseOrStatusPriority = false;
+                    }
+                    else if (ticket.Submitter.Contains(phrase, StringComparison.OrdinalIgnoreCase))
+                    {
+                        didNotFindAPhraseOrStatusPriority = false;
+                    }
+                    else if (ticket.Assigned.Contains(phrase, StringComparison.OrdinalIgnoreCase))
+                    {
+                        didNotFindAPhraseOrStatusPriority = false;
+                    }
+                    else if (ticket.ContainsInExtras(phrase, StringComparison.OrdinalIgnoreCase))
+                    {
+                        didNotFindAPhraseOrStatusPriority = false;
+                    }
+                    if (!didNotFindAPhraseOrStatusPriority) { break; }
+                }
+            }
+            if(didNotFindAPhraseOrStatusPriority)
             {
                 filterRemainingTickets.Remove(ticket);
                 i--;
@@ -423,6 +489,8 @@ string enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS filterMenuEnum)
     {
         FILTER_MENU_OPTIONS.Types => "Add filter tickets by type",
         FILTER_MENU_OPTIONS.Phrases => "Modify filter tickets by phrase",
+        FILTER_MENU_OPTIONS.Statuses => "Select filter tickets by status",
+        FILTER_MENU_OPTIONS.Priorities => "Select filter tickets by priority",
         FILTER_MENU_OPTIONS.Run_Filter => "Run the compleated filters",
         _ => "ERROR_FILTER_MENU_OPTION_DOES_NOT_EXIST"
     };
@@ -463,6 +531,8 @@ public enum FILTER_MENU_OPTIONS
 {
     Types,
     Phrases,
+    Statuses,
+    Priorities,
     Run_Filter
 }
 
