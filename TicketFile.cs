@@ -147,11 +147,11 @@ public class TicketFile<T> where T : Ticket, new()
             // first generate ticket id
             ticket.TicketId = Tickets.Max(ticket => ticket.TicketId) + 1;
             // if summary contains a comma, wrap it in quotes
-            string summary = ticket.Summary.IndexOf(delimeter2) != -1 || ticket.Summary.IndexOf("\"") != -1 ? $"\"{ticket.Summary}\"" : ticket.Summary;
+            string saveSummary = ticket.Summary.IndexOf(delimeter1) != -1 || ticket.Summary.IndexOf(delimeter1) != -1 ? $"\"{ticket.Summary}\"" : ticket.Summary;
             StreamWriter sw = new StreamWriter(filePath, true);
             // write ticket data to file
 
-            string lineToCore = $"{ticket.TicketId}{delimeter1}{ticket.Summary}{delimeter1}{Ticket.StatusesEnumToString(ticket.Status)}{delimeter1}{Ticket.PrioritiesEnumToString(ticket.Priority)}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{string.Join(delimeter2,ticket.Watching)}";
+            string lineToCore = $"{ticket.TicketId}{delimeter1}{saveSummary}{delimeter1}{Ticket.StatusesEnumToString(ticket.Status)}{delimeter1}{Ticket.PrioritiesEnumToString(ticket.Priority)}{delimeter1}{ticket.Submitter}{delimeter1}{ticket.Assigned}{delimeter1}{string.Join(delimeter2,ticket.Watching)}";
             string additional = "";
 
             Type saveType = typeof(T);
