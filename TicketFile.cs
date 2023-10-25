@@ -140,12 +140,11 @@ public class TicketFile<T> where T : Ticket, new()
     }
 
 
-    public bool AddTicket(T ticket)
+    public bool AddTicket(T ticket, ulong id)
     {
         try
         {
-            // first generate ticket id
-            ticket.TicketId = Tickets.Max(ticket => ticket.TicketId) + 1;
+            ticket.TicketId = id;
             // if summary contains a comma, wrap it in quotes
             string saveSummary = ticket.Summary.IndexOf(delimeter1) != -1 || ticket.Summary.IndexOf(delimeter1) != -1 ? $"\"{ticket.Summary}\"" : ticket.Summary;
             StreamWriter sw = new StreamWriter(filePath, true);

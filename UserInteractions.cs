@@ -1,3 +1,4 @@
+using System.Reflection.Metadata;
 using Microsoft.AspNetCore.Routing.Constraints;
 using NLog;
 /**
@@ -10,6 +11,9 @@ public sealed class UserInteractions{ //Sealed to prevent inheritance, set up as
     static string loggerPath = Directory.GetCurrentDirectory() + (IS_UNIX ? "/" : "\\") + "nlog.config";
     static string readWriteFilePath = Directory.GetCurrentDirectory() + (IS_UNIX ? "/" : "\\") + "Tickets.csv";
     static NLog.Logger logger;
+
+    public static ConsoleColor defaultColor = ConsoleColor.White;
+    public static ConsoleColor resultsColor = ConsoleColor.Green;
 
 
 // SINGLETON PATTERN START (Hope I got this right)

@@ -1,4 +1,4 @@
-public abstract class Ticket//: IEquatable<Ticket>, IComparable<Ticket>
+public abstract class Ticket: IEquatable<Ticket>, IComparable<Ticket>
 {
 
     public enum STATUSES
@@ -48,6 +48,58 @@ public abstract class Ticket//: IEquatable<Ticket>, IComparable<Ticket>
                $"Submitter: {Submitter}\n" +
                $"Assigned:  {Assigned}\n" +
                $"Watching:  {string.Join(", ", Watching)}\n";
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null) return false;
+        Ticket objAsMovie = obj as Ticket;
+        if (objAsMovie == null) return false;
+        else return Equals(objAsMovie);
+    }
+    public bool Equals(Ticket other)
+    {
+        if (other == null) return false;
+        return this.GetHashCode().Equals(other.GetHashCode());
+    }
+
+    // Default comparer for Ticket (id decending then alphabetically decending)
+    public int CompareTo(Ticket compareTicket)
+    {
+        int compareResult = CompareToId(compareTicket);
+        if(compareResult == 0){//If equal
+            return CompareToSummary(compareTicket);;
+        }else{
+            return compareResult;
+        }
+    }
+
+    // Primary comparer for Ticket (id decending)
+    public int CompareToId(Ticket compareTicket)
+    {
+        // A null value means that this object is greater.
+        if (compareTicket == null)
+        {
+            return 1;
+        }
+        else
+        {
+            return this.TicketId.CompareTo(compareTicket.TicketId);
+        }
+    }
+
+    // Secondary comparer for Ticket (tile alphabetically decending)
+    public int CompareToSummary(Ticket compareTicket)
+    {
+        // A null value means that this object is greater.
+        if (compareTicket == null)
+        {
+            return 1;
+        }
+        else
+        {
+            return this.Summary.CompareTo(compareTicket.Summary);
+        }
     }
 
     public virtual bool ContainsInExtras(string phraseStr, StringComparison stringComparison)

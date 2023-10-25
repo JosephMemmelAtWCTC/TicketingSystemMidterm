@@ -68,9 +68,11 @@ do
     }
     else if (menuCheckCommand == enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS.View_Tickets_No_Filter))
     {
-        UserInteractions.PrintTicketList(ticketFileBugDefects.Tickets);
-        UserInteractions.PrintTicketList(ticketFileEnhancements.Tickets);
-        UserInteractions.PrintTicketList(ticketFileTasks.Tickets);
+        List<Ticket> allTickets = getAllTickets();
+
+        allTickets.Sort();
+        UserInteractions.PrintTicketList(allTickets);
+        Console.WriteLine($"There were {allTickets.Count} ticket{((allTickets.Count==1)? "" : "s" )} on record.");
     }
     // else if (menuCheckCommand == enumToStringMainMenuWorkArround(MAIN_MENU_OPTIONS.View_Tickets_Filter))
     // {
@@ -110,7 +112,7 @@ do
         {
             if (ticketFileBugDefects.isUniqueSummary(newTicket.Summary))
             {
-                savedSucuessfully = ticketFileBugDefects.AddTicket(newTicket as BugDefect);
+                savedSucuessfully = ticketFileBugDefects.AddTicket(newTicket as BugDefect, getAllTickets().Max(ticket => ticket.TicketId) + 1);
             }
             else
             {
@@ -121,7 +123,7 @@ do
         {
             if (ticketFileEnhancements.isUniqueSummary(newTicket.Summary))
             {
-                savedSucuessfully = ticketFileEnhancements.AddTicket(newTicket as Enhancement);
+                savedSucuessfully = ticketFileEnhancements.AddTicket(newTicket as Enhancement, getAllTickets().Max(ticket => ticket.TicketId) + 1);
             }
             else
             {
@@ -132,7 +134,7 @@ do
         {
             if (ticketFileEnhancements.isUniqueSummary(newTicket.Summary))
             {
-                savedSucuessfully = ticketFileTasks.AddTicket(newTicket as Task);
+                savedSucuessfully = ticketFileTasks.AddTicket(newTicket as Task, getAllTickets().Max(ticket => ticket.TicketId) + 1);
             }
             else
             {
@@ -166,7 +168,6 @@ do
         Ticket.STATUSES[] filterAllowStatuses = (Ticket.STATUSES[])Enum.GetValues(typeof(Ticket.STATUSES)); //Get all enums of statuses
         Ticket.PRIORITIES[] filterAllowPriorities = (Ticket.PRIORITIES[])Enum.GetValues(typeof(Ticket.PRIORITIES)); //Get all enums of priorities
 
-        //TODO: Add statuses & priorities
         string choosenFilterOption;
         do
         {
@@ -216,7 +217,6 @@ do
 
             choosenFilterOption = UserInteractions.OptionsSelector(FILTER_MENU_OPTIONS_IN_ORDER);
 
-
             if (choosenFilterOption == enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Types))
             {
                 string[] choosenTypes = UserInteractions.RepeatingOptionsSelector(TICKET_TYPES_IN_ORDER);
@@ -258,7 +258,7 @@ do
                     }
                 }while(selectedOption != keywordOptions[keywordOptions.Length-1]);
 
-                Console.WriteLine($"Current search phrases: {filterSearchStrings.Aggregate((current,next) => $"{current},\"{next}\"")}");
+                Console.WriteLine($"Current search phrases: {filterSearchStrings.Aggregate((current,next) => $"{current}, \"{next}\"")}");
 
             }
             else if (choosenFilterOption == enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Statuses))
@@ -353,8 +353,9 @@ do
             }
         }
 
+        filterRemainingTickets.Sort();
         UserInteractions.PrintTicketList(filterRemainingTickets);
-
+        Console.WriteLine($"There were {filterRemainingTickets.Count} ticket{((filterRemainingTickets.Count==1)? "" : "s" )} on record that satisfied your filter parameters.");
     }
     else
     {
@@ -363,6 +364,13 @@ do
 
 } while (true);
 
+List<Ticket> getAllTickets(){
+    List<Ticket> allTickets = new List<Ticket>(){ };
+    allTickets.AddRange(ticketFileBugDefects.Tickets);
+    allTickets.AddRange(ticketFileEnhancements.Tickets);
+    allTickets.AddRange(ticketFileTasks.Tickets);
+    return allTickets;
+}
 
 T userCreateNewTicket<T>() where T : Ticket, new()
 {
@@ -476,7 +484,7 @@ string enumToStringMainMenuWorkarround(MAIN_MENU_OPTIONS mainMenuEnum)
     return mainMenuEnum switch
     {
         MAIN_MENU_OPTIONS.Exit => "Quit program",
-        MAIN_MENU_OPTIONS.View_Tickets_No_Filter => $"View all tickets on file in order (display max ammount is {UserInteractions.PRINTOUT_RESULTS_MAX_TERMINAL_SPACE_HEIGHT / 11:N0})",// Divide by 11 as 10 is the current max number of fields in a ticket and +1 for the empty spacing lines between
+        MAIN_MENU_OPTIONS.View_Tickets_No_Filter => $"View all tickets on file (display max ammount is {UserInteractions.PRINTOUT_RESULTS_MAX_TERMINAL_SPACE_HEIGHT / 11:N0})",// Divide by 11 as 10 is the current max number of fields in a ticket and +1 for the empty spacing lines between
         MAIN_MENU_OPTIONS.View_Tickets_Filter => "Filter tickets on file",
         MAIN_MENU_OPTIONS.Add_Ticket => "Add new ticket to file",
         _ => "ERROR_MAIN_MENU_OPTION_DOES_NOT_EXIST"
