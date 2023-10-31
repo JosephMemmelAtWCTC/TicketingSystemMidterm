@@ -52,7 +52,6 @@ string[] TICKET_PRIORITIES_IN_ORDER = {Ticket.PrioritiesEnumToString(Ticket.PRIO
                                        Ticket.PrioritiesEnumToString(Ticket.PRIORITIES.Urgent),
                                        Ticket.PrioritiesEnumToString(Ticket.PRIORITIES.EMERGENCY)};
 
-
 // MAIN LOOP MENU
 do
 {
@@ -163,7 +162,7 @@ do
 
         TICKET_TYPES[] filterAllowTypes = (TICKET_TYPES[])Enum.GetValues(typeof(TICKET_TYPES)); //Get all enums of Ticket types
 
-        List<string> filterSearchStrings = new List<string>() { }; //TODO: Optimize filtering
+        List<string> filterAllowSearchStrings = new List<string>() { }; //TODO: Optimize filtering
 
         Ticket.STATUSES[] filterAllowStatuses = (Ticket.STATUSES[])Enum.GetValues(typeof(Ticket.STATUSES)); //Get all enums of statuses
         Ticket.PRIORITIES[] filterAllowPriorities = (Ticket.PRIORITIES[])Enum.GetValues(typeof(Ticket.PRIORITIES)); //Get all enums of priorities
@@ -207,7 +206,7 @@ do
             string indentStr = new string[3].Aggregate((c, n) => $"{c} "); //Blank space to make it act as a single character, needs to be 1 more then desired ammount
             string phraseIndentStr = new string[10].Aggregate((c, n) => $"{c} "); //Blank space to make it act as a single character
 
-            string builtUpPhrases = (filterSearchStrings.Count == 0)? "" : filterSearchStrings.Aggregate((current, next) => $"{current}\n{indentStr}{phraseIndentStr}{next}");
+            string builtUpPhrases = (filterAllowSearchStrings.Count == 0)? "" : filterAllowSearchStrings.Aggregate((current, next) => $"{current}\n{indentStr}{phraseIndentStr}{next}");
 
             Console.WriteLine($"{indentStr}Types:      {filterAllowTypesAsStr}");
             Console.WriteLine($"{indentStr}Statuses:   {filterAllowStatusesAsStr}");
@@ -237,12 +236,12 @@ do
 
                     if(selectedOption == keywordOptions[1]){
                         Console.WriteLine("Select the following to remove");
-                        string[] leftAfterRemovel = UserInteractions.RepeatingOptionsSelector(filterSearchStrings.ToArray());
+                        string[] leftAfterRemovel = UserInteractions.RepeatingOptionsSelector(filterAllowSearchStrings.ToArray());
                         
-                        filterSearchStrings = new List<string>() { }; //Reset options
+                        filterAllowSearchStrings = new List<string>() { }; //Reset options
                         foreach(string phrase in leftAfterRemovel)
                         {
-                            filterSearchStrings.Add(phrase);
+                            filterAllowSearchStrings.Add(phrase);
                         }
                     }else if(selectedOption == keywordOptions[0]){
                         Console.WriteLine("Add phrases to the filter (it's case-insensitive)");
@@ -252,13 +251,13 @@ do
                             if(newPhrase.Length == 0){
                                 newPhrase = null;
                             }else{
-                                filterSearchStrings.Add(newPhrase);
+                                filterAllowSearchStrings.Add(newPhrase);
                             }
                         }while(newPhrase != null);
                     }
                 }while(selectedOption != keywordOptions[keywordOptions.Length-1]);
 
-                Console.WriteLine($"Current search phrases: {filterSearchStrings.Aggregate((current,next) => $"{current}, \"{next}\"")}");
+                Console.WriteLine($"Current search phrases: {filterAllowSearchStrings.Aggregate((current,next) => $"{current}, \"{next}\"")}");
 
             }
             else if (choosenFilterOption == enumToStringFilterMenuWorkarround(FILTER_MENU_OPTIONS.Statuses))
@@ -297,60 +296,29 @@ do
         {
             filterRemainingTickets.AddRange(ticketFileTasks.Tickets);
         }
-        // Filter by summary - (remove)
-        for(int i=0; i< filterRemainingTickets.Count; i++)
-        {
-            Ticket ticket = filterRemainingTickets[i];
+        // Filter by status
+        filterRemainingTickets = filterRemainingTickets.Where(ticket => filterAllowStatuses.Contains(ticket.Status)).ToList();
+        // Filter by priority
+        filterRemainingTickets = filterRemainingTickets.Where(ticket => filterAllowPriorities.Contains(ticket.Priority)).ToList();
+        // Filter by phrase
+        // // in summary
+        // filterRemainingTickets = filterRemainingTickets.Where(ticket =>
+        //     filterAllowSearchStrings.All(match => ticket.Summary.Contains(match, StringComparison.OrdinalIgnoreCase))
+        // ).ToList();
 
-            bool didNotFindAPhraseOrStatusPriority = true;
-
-            foreach (Ticket.STATUSES status in filterAllowStatuses)
-            {
-                if(ticket.Status == status){
-                    didNotFindAPhraseOrStatusPriority = false;
-                    break;
-                }
-            }
-            if(didNotFindAPhraseOrStatusPriority){
-                foreach (Ticket.PRIORITIES priority in filterAllowPriorities)
-                {
-                    if(ticket.Priority == priority){
-                        didNotFindAPhraseOrStatusPriority = false;
-                        break;
-                    }
-                }
-            }
-            if(didNotFindAPhraseOrStatusPriority){
-                foreach (string phrase in filterSearchStrings)
-                {
-                    if (ticket.Summary.Contains(phrase, StringComparison.OrdinalIgnoreCase))
-                    {
-                        didNotFindAPhraseOrStatusPriority = false;
-                    }
-                    else if (ticket.Assigned.Contains(phrase, StringComparison.OrdinalIgnoreCase))
-                    {
-                        didNotFindAPhraseOrStatusPriority = false;
-                    }
-                    else if (ticket.Submitter.Contains(phrase, StringComparison.OrdinalIgnoreCase))
-                    {
-                        didNotFindAPhraseOrStatusPriority = false;
-                    }
-                    else if (ticket.Assigned.Contains(phrase, StringComparison.OrdinalIgnoreCase))
-                    {
-                        didNotFindAPhraseOrStatusPriority = false;
-                    }
-                    else if (ticket.ContainsInExtras(phrase, StringComparison.OrdinalIgnoreCase))
-                    {
-                        didNotFindAPhraseOrStatusPriority = false;
-                    }
-                    if (!didNotFindAPhraseOrStatusPriority) { break; }
-                }
-            }
-            if(didNotFindAPhraseOrStatusPriority)
-            {
-                filterRemainingTickets.Remove(ticket);
-                i--;
-            }
+        // in all phrase areas
+        if(filterAllowSearchStrings.Count > 0){
+            filterRemainingTickets = filterRemainingTickets.Where(ticket =>
+                filterAllowSearchStrings
+                    .Any(phrase =>
+                        ticket.Summary.Contains(phrase, StringComparison.OrdinalIgnoreCase) ||
+                        ticket.Assigned.Contains(phrase, StringComparison.OrdinalIgnoreCase) ||
+                        ticket.Submitter.Contains(phrase, StringComparison.OrdinalIgnoreCase) ||
+                        ticket.Assigned.Contains(phrase, StringComparison.OrdinalIgnoreCase) ||
+                        ticket.ContainsInExtras(phrase, StringComparison.OrdinalIgnoreCase)
+                    )
+            )
+            .ToList();
         }
 
         filterRemainingTickets.Sort();
